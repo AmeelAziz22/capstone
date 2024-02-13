@@ -75,8 +75,16 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'postgres',
+        'USER': 'postgres',
+        
+        # You'll have to set this password if you didn't already during installation. 
+        # Do this in pgAdmin at Servers->PostgreSQL 16->Login/Group Roles->postgres 
+        # (right click->properties->Definition tab->password)
+        'PASSWORD': 'password',
+        'HOST': '127.0.0.1',
+        'PORT': '5432'
     }
 }
 
