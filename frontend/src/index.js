@@ -2,9 +2,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import {createBrowserRouter, RouterProvider,} from 'react-router-dom';
 
-import './styles.css'
+import './styles.css';
 
-import Main from './routes/main'
+import Main from './routes/main';
 import Login from './routes/login';
 import Register from './routes/register';
 import ErrorPage from './error-page';

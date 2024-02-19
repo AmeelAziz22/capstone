@@ -27,7 +27,7 @@ const RegisterForm = () => {
                     <label for="password">Password</label>
                     <input type="password" placeholder="Enter password" id="password"/>
                     </div>
-                    <div className="input-group"><button>Login</button></div>
+                    <div className="input-group"><button>Register</button></div>
                 </form>
             </section>
             <footer>
