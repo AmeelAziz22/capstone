@@ -82,7 +82,7 @@ def get_user_stocks(request, userID):
         },
         # Add more entries for other stocks
     ]
-    return JsonResponse(stocks_data)
+    return JsonResponse(stocks_data, safe=False)
 
 @csrf_exempt
 def purchase_stock(request, userID):
@@ -126,7 +126,7 @@ def get_user_portfolio(request, userID):
         },
         # Add more entries for the past 30 days
     ]
-    return JsonResponse(portfolio_data)
+    return JsonResponse(portfolio_data, safe=False)
 
 @csrf_exempt
 def get_user_portfolio_today(request, userID):
@@ -135,8 +135,6 @@ def get_user_portfolio_today(request, userID):
     today_portfolio_value = 14484.00  # Placeholder value, replace with actual value from database
     return JsonResponse({'todays_value': today_portfolio_value})
 
-
-
-      
+# default page
 def home(request):
     return HttpResponse("Welcome to the homepage!")
