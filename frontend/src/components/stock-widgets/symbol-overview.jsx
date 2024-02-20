@@ -27,11 +27,11 @@ function SymbolOverview() {
             ]
           ],
           "chartOnly": false,
-          "width": 500,
-          "height": 400,
+          "width": "100%",
+          "height": "100%",
           "locale": "en",
           "colorTheme": "dark",
-          "autosize": true,
+          "autosize": false,
           "showVolume": false,
           "showMA": false,
           "hideDateRanges": false,
@@ -66,10 +66,12 @@ function SymbolOverview() {
   }, []);
 
   return (
-    <div className="tradingview-widget-container w-500px" ref={container}>
-      {/* <div className="tradingview-widget-container__widget"></div> */}
-      {/* <div className="tradingview-widget-copyright"> */}
-      {/* </div> */}
+    <div className="flex items-center justify-center w-[70vw] h-[30vw]">
+      <div className="tradingview-widget-container rounded-sm" ref={container}>
+        {/* <div className="tradingview-widget-container__widget"></div> */}
+        {/* <div className="tradingview-widget-copyright"> */}
+        {/* </div> */}
+      </div>
     </div>
   );
 }
