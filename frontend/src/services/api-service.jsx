@@ -41,8 +41,8 @@ class API {
     return this.fetchData(url, "GET");
   }
 
-  static async purchaseStock(userID, symbol, shares, average_price) {
-    const url = `http://127.0.0.1:8000/user/${userID}/stock/purchase/`;
+  static async updateStock(userID, symbol, shares, average_price) {
+    const url = `http://127.0.0.1:8000/user/${userID}/stock/update/`;
     return this.fetchData(url, "POST", {
       symbol: symbol,
       shares: shares,

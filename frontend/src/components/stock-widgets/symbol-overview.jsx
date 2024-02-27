@@ -1,11 +1,18 @@
 // TradingViewWidget.jsx
 import React, { useEffect, useRef, memo } from "react";
 
-function SymbolOverview() {
+function SymbolOverview({ selectedStock }) {
   const container = useRef();
 
   useEffect(() => {
+    const currentContainer = container.current;
+    while (currentContainer.firstChild) {
+      currentContainer.removeChild(currentContainer.firstChild);
+    }
     const script = document.createElement("script");
+
+    console.log("selectedStock: ", selectedStock);
+
     script.src =
       "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
     script.type = "text/javascript";
@@ -15,15 +22,7 @@ function SymbolOverview() {
           "symbols": [
             [
               "Apple",
-              "AAPL|1D|USD"
-            ],
-            [
-              "Google",
-              "GOOGL|1D|USD"
-            ],
-            [
-              "Microsoft",
-              "MSFT|1D|USD"
+              "${selectedStock}|1D|USD"
             ]
           ],
           "chartOnly": false,
@@ -60,10 +59,15 @@ function SymbolOverview() {
           ],
           "timeHoursFormat": "12-hours"
         }`;
-    if (!container.current.hasChildNodes()) {
-      container.current.appendChild(script);
-    }
-  }, []);
+
+    container.current.appendChild(script);
+
+    return () => {
+      if (currentContainer.firstChild) {
+        currentContainer.removeChild(currentContainer.firstChild);
+      }
+    };
+  }, [selectedStock]);
 
   return (
     <div className="flex items-center justify-center w-[70vw] h-[30vw]">

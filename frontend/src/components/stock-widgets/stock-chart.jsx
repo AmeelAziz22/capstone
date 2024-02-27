@@ -36,17 +36,27 @@ export const StockChart = ({ ticker }) => {
   );
 };
 
-export const StockSummary = ({ stocks }) => {
+export const StockSummary = ({ stocks, selectStock }) => {
   const rows = [];
 
   stocks.forEach((stock) => {
     rows.push(
-      <tr key={stock.symbol} className="bg-gray-900 rounded-sm">
+      <tr
+        key={stock.symbol}
+        className="bg-gray-900 rounded-sm hover:bg-slate-700 cursor-pointer transition duration-100 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:bg-slate-800"
+        onClick={() => {
+          selectStock(stock.symbol);
+        }}
+      >
         <td className="p-3 font-bold text-center">{stock.symbol}</td>
         <td className="p-3 text-center">{stock.shares}</td>
-        <td className="p-3 text-center">{stock.curPrice} USD</td>
-        <td className="p-3 text-center">{stock.avgPrice} USD</td>
-        <td className="p-3 text-center">{stock.priceChange} USD</td>
+        <td className="p-3 text-center">
+          {stock.current_price.toFixed(2)} USD
+        </td>
+        <td className="p-3 text-center">
+          {stock.average_price.toFixed(2)} USD
+        </td>
+        <td className="p-3 text-center">{stock.price_change.toFixed(2)} %</td>
       </tr>
     );
   });

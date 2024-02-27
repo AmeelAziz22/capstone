@@ -6,12 +6,18 @@ import API from "../services/api-service";
 
 const Home = () => {
   let [stocks, setStocks] = useState([]);
+  let [selectedStock, setSelectedStock] = useState("GOOG");
+
+  let selectStock = (stockSymbol) => {
+    console.log("Selected stock: " + stockSymbol);
+    setSelectedStock(stockSymbol);
+  };
 
   // let userID = "user1";
 
   useDeepCompareEffect(() => {
     const fetchAndSetStocks = () => {
-      API.fetchStocks("userId").then(setStocks).catch(console.error);
+      API.fetchStocks(1).then(setStocks).catch(console.error);
       console.log("Fetched stocks");
     };
 
@@ -25,14 +31,16 @@ const Home = () => {
     return () => clearInterval(intervalId);
   }, [stocks]);
 
+  
+
   return (
     <>
       <div className="flex flex-grow flex-col p-8 bg-gray-800">
         <h1 className="pb-8 text-white font-bold text-4xl">Portfolio</h1>
         <div className="flex flex-col justify-center items-center">
-          <SymbolOverview />
+          <SymbolOverview selectedStock={selectedStock} />
           <br></br>
-          <StockSummary stocks={stocks} />
+          <StockSummary stocks={stocks} selectStock={selectStock} />
         </div>
       </div>
     </>
