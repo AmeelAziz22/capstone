@@ -135,22 +135,34 @@ def authenticate_user(request):
     else:
         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
 
+
 @csrf_exempt
 def get_user_stocks(request, userID):
     try:
         user = User.objects.get(userID=userID)
         stocks = Account_Stock.objects.filter(user=user)
 
-        stocks_data = [
-            {
+        stocks_data = []
+
+        for stock in stocks:
+            # Fetch data for the stock using yfinance
+            data = yf.Ticker(stock.stock_symbol)
+            
+            # Get the current closed price
+            current_price = data.history(period="1d")['Close'][0]
+            
+            # Calculate price change
+            price_change = (current_price /stock.average_price) * 100
+            
+            # Append data to stocks_data
+            stocks_data.append({
                 "symbol": stock.stock_symbol,
                 "shares": stock.shares,
                 "average_price": stock.average_price,
-                "current_price": 0.0, # (TODO) Fetch the current price and use it to calculate a price change.
-                "price_change": 0.0 - stock.average_price # (TODO) Use the above to calculate the price change.
-            }
-            for stock in stocks
-        ]
+                "current_price": current_price,
+                "price_change": price_change
+            })
+
         return JsonResponse(stocks_data, safe=False)
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
