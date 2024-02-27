@@ -141,16 +141,32 @@ def get_user_stocks(request, userID):
         user = User.objects.get(userID=userID)
         stocks = Account_Stock.objects.filter(user=user)
 
-        stocks_data = [
-            {
+        stocks_data = []
+
+        for stock in stocks:
+            # Fetch current price and calculate price change
+            stock_data = {
                 "symbol": stock.stock_symbol,
                 "shares": stock.shares,
                 "average_price": stock.average_price,
-                "current_price": 0.0, # (TODO) Fetch the current price and use it to calculate a price change.
-                "price_change": 0.0 - stock.average_price # (TODO) Use the above to calculate the price change.
+                "current_price": 0.0,
+                "price_change": 0.0 - stock.average_price,
             }
-            for stock in stocks
-        ]
+
+            # Fetch current price using yfinance
+            try:
+                stock_info = yf.Ticker(stock.stock_symbol)
+                history = stock_info.history(period='1d')  # Fetch the historical data for the last day
+                if not history.empty:
+                    current_price = history["Close"].iloc[-1]  # Get the last closing price
+                    stock_data["current_price"] = round(current_price, 2)  # Round to the nearest cent
+                    stock_data["price_change"] = stock_data["current_price"] - stock.average_price
+            except Exception as e:
+                # Handle errors or lack of data as needed
+                print(f"Error fetching data for {stock.stock_symbol}: {e}")
+
+            stocks_data.append(stock_data)
+
         return JsonResponse(stocks_data, safe=False)
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
@@ -170,29 +186,33 @@ def update_stock(request, userID):
 
             # Check if 'shares' key is present in received_data
             if 'shares' in received_data:
-                new_shares = received_data['shares']
+                new_shares = float(received_data['shares'])
 
                 if stock_to_update:
-                    # Update shares and check if it becomes 0 (sold out), remove the stock
+                    # Update shares and calculate new average price
                     if new_shares == 0:
                         stock_to_update.delete()
                         return JsonResponse({'message': 'Stock update successful'})
-                    elif float(new_shares) < 0:
+                    elif new_shares < 0:
                         return JsonResponse({'message': 'Cannot have negative quantities of shares'})
                     else:
-                        stock_to_update.shares = new_shares
+                        old_shares = stock_to_update.shares
+                        old_average_price = stock_to_update.average_price
+
+                        # Calculate new average price
+                        total_shares = old_shares + new_shares
+                        new_average_price = ((old_shares * old_average_price) + (new_shares * received_data['average_price'])) / total_shares
+
+                        stock_to_update.shares = total_shares
+                        stock_to_update.average_price = new_average_price
                 else:
                     # Stock doesn't exist, create a new entry in the database
                     Account_Stock.objects.create(
                         user=user,
                         stock_symbol=received_data['symbol'],
                         shares=new_shares,
-                        average_price=received_data.get('average_price', 0.0) # (TODO) Change from 0.0 to whatever price is/calculate average price
+                        average_price=float(received_data.get('average_price', 0.0))  # Change from 0.0 to whatever price is
                     )
-
-            # Check if 'average_price' key is present in received_data and stock exists
-            if 'average_price' in received_data and stock_to_update:
-                stock_to_update.average_price = received_data['average_price']
 
             # Save the changes to the database
             if stock_to_update:
