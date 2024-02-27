@@ -2,13 +2,14 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
+from backend_app.models import MyModel
 
 @csrf_exempt  # For demo purposes only; consider using proper CSRF protection in production
 def get_data(request):
     if request.method == 'GET':
         # Your logic to handle GET request
-        data = {'message': 'This is a GET request'}
-        return JsonResponse(data)
+        data = [{'name': instance.name, 'age': instance.age} for instance in MyModel.objects.all()]
+        return JsonResponse(data, safe=False)
 
 @csrf_exempt  # For demo purposes only; consider using proper CSRF protection in production
 def post_data(request):
