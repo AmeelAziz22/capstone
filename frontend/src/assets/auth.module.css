@@ -1,0 +1,168 @@
+.wrap {
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+.logow {
+  display: inline-block;
+  padding: 10px;
+}
+
+.authbox {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.content {
+  background-color: #292c3a;
+  padding: 30px 15px;
+  border-radius: 10px;
+  width: 100%;
+  max-width: 500px;
+  min-width: 200px;
+}
+
+.authtitle {
+  color: #fff;
+  margin-top: 0;
+  font-size: 150%;
+}
+
+header {
+  text-align: center;
+}
+
+.loginForm {
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  width: 100%;
+  max-width: 310px;
+}
+
+.inputGroup input {
+  padding: 15px;
+  font-size: 12px;
+  border: 1px solid #262936;
+  background-color: #262936;
+  border-radius: 50px;
+  color: white;
+}
+
+.inputGroup input:focus {
+  color: #fff;
+  outline: 0;
+}
+
+.inputGroup input::placeholder {
+  color: grey;
+}
+
+.inputGroupStock {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+  width: 40%;
+  max-width: 310px;
+}
+
+.inputGroupStock input {
+  padding: 15px;
+  font-size: 12px;
+  border: 1px solid #262936;
+  background-color: #262936;
+  border-radius: 50px;
+  color: white;
+}
+
+.stockPriceWrap {
+  display: flex;
+  gap: 20px;
+}
+
+.buttonstyle {
+  width: 160px;
+  border: unset;
+  border-radius: 50px;
+  cursor: pointer;
+  background-color: #3f5bd8;
+  border: unset;
+  color: #fff;
+  align-self: center;
+  margin-top: 15px;
+  height: 45px;
+  font-size: 14px;
+}
+
+button:hover {
+  background-color: rgb(50, 84, 168);
+}
+
+.labelstyle {
+  color: #999;
+  font-size: 12px;
+  margin-bottom: 3px;
+  margin-left: 16px;
+}
+
+footer {
+  padding-top: 15px;
+  text-align: center;
+  color: #999;
+  text-decoration: none;
+  font-size: 11px;
+}
+
+footer a {
+  color: #3f5bd8;
+}
+
+.inlineInput {
+  display: inline-block;
+  width: 100px; /* Adjust as needed for input field width */
+}
+
+.plusButton {
+  width: 80%;
+  border-radius: 50px;
+  color: white;
+  border: none;
+  background-color: #0056b3;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.buttonDiv {
+  display: flex;
+  align-items: center;
+  width: 20%;
+}
+
+.plusButton:hover {
+  background-color: #0056b3; /* Darker blue color on hover, adjust as needed */
+}
+
+.register table,
+.register th,
+.register td {
+  border: 1px solid black;
+  color: grey;
+  padding: 5px;
+}
+
+.searchStockDiv {
+  display: flex;
+  flex-direction: column;
+  padding-top: 10px;
+}
