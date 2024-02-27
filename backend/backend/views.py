@@ -6,12 +6,15 @@ from django.db.models import Sum
 from backend_app.models import User, Account_Stock, PortfolioHistory
 from datetime import datetime, timedelta
 
-@csrf_exempt  # For demo purposes only; consider using proper CSRF protection in production
+@csrf_exempt
 def get_data(request):
     if request.method == 'GET':
         # Your logic to handle GET request
-        data = [{'name': instance.name, 'age': instance.age} for instance in MyModel.objects.all()]
+        data = [{'first_name': user.first_name, 'last_name': user.last_name} for user in User.objects.all()]
         return JsonResponse(data, safe=False)
+    else:
+        return JsonResponse({'error': 'This endpoint only accepts GET requests'}, status=405)
+
 
 @csrf_exempt  # For demo purposes only; consider using proper CSRF protection in production
 def post_data(request):
@@ -45,13 +48,13 @@ def register_user(request):
                 return JsonResponse({'error': 'User with this username already exists'}, status=400)
 
             # Create a new user profile
-            User.objects.create(
+            user = User.objects.create(
                 first_name=received_data['first_name'],
                 last_name=received_data['last_name'],
                 username=received_data['username'],
                 password=received_data['password']
             )
-            return JsonResponse({'message': 'User profile created successfully'})
+            return JsonResponse({'message': 'User profile created successfully', 'userID': user.userID})
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
     else:
@@ -83,7 +86,7 @@ def get_user_stocks(request, userID):
                 "shares": stock.shares,
                 "average_price": stock.average_price,
                 "current_price": 0.0, # (TODO) Fetch the current price and use it to calculate a price change.
-                "price_change": 0.0
+                "price_change": 0.0 - stock.average_price # (TODO) Use the above to calculate the price change.
             }
             for stock in stocks
         ]
@@ -121,7 +124,7 @@ def update_stock(request, userID):
                         user=user,
                         stock_symbol=received_data['symbol'],
                         shares=new_shares,
-                        average_price=received_data.get('average_price', 0.0) # (TODO) Change from 0.0 to whatever price is
+                        average_price=received_data.get('average_price', 0.0) # (TODO) Change from 0.0 to whatever price is/calculate average price
                     )
 
             # Check if 'average_price' key is present in received_data and stock exists
