@@ -31,4 +31,5 @@ urlpatterns = [
     # path('user/<int:userID>/stock/sell/', views.sell_stock, name='sell_stock'),
     path('user/<int:userID>/portfolio/', views.get_user_portfolio, name='get_user_portfolio'),
     path('user/<int:userID>/portfolio_today/', views.get_user_portfolio_today, name='get_user_portfolio_today'),
+    path('user/<int:userID>/generate_portfolio/', views.generate_portfolio, name='generate_portfolio')
 ]
