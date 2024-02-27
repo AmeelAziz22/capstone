@@ -152,7 +152,7 @@ def get_user_stocks(request, userID):
             current_price = data.history(period="1d")['Close'][0]
             
             # Calculate price change
-            price_change = (current_price /stock.average_price) * 100
+            price_change = (current_price /stock.average_price) * 100 - 100
             
             # Append data to stocks_data
             stocks_data.append({
