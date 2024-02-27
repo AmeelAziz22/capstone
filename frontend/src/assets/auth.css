@@ -69,7 +69,29 @@ header{
     color:grey;
 }
 
-button {
+.input-group-stock{
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    width: 40%;
+    max-width: 310px;
+}
+
+.input-group-stock input{
+    padding: 15px;
+    font-size: 12px;
+    border: 1px solid #262936;
+    background-color: #262936;
+    border-radius: 50px;
+    color:white;
+}
+
+.stock-price-wrap{
+     display: flex;
+     gap: 20px;
+}
+
+.buttonstyle {
     width: 160px;
     border: unset;
     border-radius: 50px;
@@ -87,7 +109,7 @@ button:hover {
   background-color: rgb(50, 84, 168);
 }
 
-label {
+.labelstyle {
     color: #999;
     font-size: 12px;
     margin-bottom: 3px;
@@ -104,4 +126,41 @@ footer{
 
 footer a{
     color:#3f5bd8;
+}
+
+.inline-input {
+  display: inline-block;
+  width: 100px; /* Adjust as needed for input field width */
+}
+
+.plus-button {
+  width: 80%;
+  border-radius: 50px;
+  color: white;
+  border: none;
+  background-color:#0056b3;
+  cursor: pointer;
+  font-size: 20px;
+}
+
+.button-div{
+    display:flex;
+    align-items:center;
+    width:20%
+}
+
+.plus-button:hover {
+  background-color: #0056b3; /* Darker blue color on hover, adjust as needed */
+}
+
+table, th, td {
+  border:1px solid black;
+  color:grey;
+  padding: 5px;
+}
+
+.searchStockDiv{
+    display: flex; 
+    flex-direction:column;
+    padding-top:10px
 }

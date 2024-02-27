@@ -45,5 +45,13 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@emotion/react": "^11.11.3",
+    "@emotion/styled": "^11.11.0",
+    "@mui/material": "^5.15.10",
+    "finnhub": "^1.2.18",
+    "react-select": "^5.8.0",
+    "react-windowed-select": "^5.2.0"
   }
 }

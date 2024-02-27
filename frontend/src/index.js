@@ -7,6 +7,7 @@ import './styles.css';
 import Main from './routes/main';
 import Login from './routes/login';
 import Register from './routes/register';
+import Explore from './routes/explore';
 import ErrorPage from './error-page';
 
 
@@ -24,6 +25,11 @@ const router = createBrowserRouter([
   {
     path: '/register',
     element: <Register/>,
+    errorElement: <ErrorPage />
+  },
+  {
+    path: '/explore',
+    element: <Explore/>,
     errorElement: <ErrorPage />
   }
 ])

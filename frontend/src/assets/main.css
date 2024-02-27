@@ -555,6 +555,9 @@ video {
 .flex {
   display: flex;
 }
+.table {
+  display: table;
+}
 .h-5 {
   height: 1.25rem;
 }

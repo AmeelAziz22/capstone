@@ -12,14 +12,14 @@ const LoginForm = () => {
             <section>
                 <form action="" className="login-form">
                     <div className="input-group">
-                    <label for="username">Username</label>
+                    <label className="labelstyle" for="username">Username</label>
                     <input type="text" placeholder="Enter username" id="username"/>
                     </div>
                     <div className="input-group">
-                    <label for="password">Password</label>
+                    <label className="labelstyle" for="password">Password</label>
                     <input type="password" placeholder="Enter password" id="password"/>
                     </div>
-                    <div className="input-group"><button>Login</button></div>
+                    <div className="input-group"><button className='buttonstyle'>Login</button></div>
                 </form>
             </section>
             <footer>
