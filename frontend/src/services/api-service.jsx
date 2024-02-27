@@ -16,58 +16,56 @@ class API {
     }
   }
 
-  static async register() {
-    const url = `http://127.0.0.1/api/register`;
+  static async register(first_name, last_name, username, password) {
+    const url = `http://127.0.0.1:8000/register/`;
     return this.fetchData(url, "POST", {
-      username: "user1",
-      password: "password",
+      first_name: first_name,
+      last_name: last_name,
+      username: username,
+      password: password,
     });
   }
 
-  static async token() {
-    const url = `http://127.0.0.1/api/token`;
+  static async token(username, password) {
+    const url = `http://127.0.0.1:8000/token/`;
     return this.fetchData(url, "POST", {
-      username: "user1",
-      password: "password",
+      username: username,
+      password: password,
     });
   }
 
   static async fetchStocks(userID) {
     // temp api endpoint for now, till backend is ready
-    const url = `https://api-generator.retool.com/lLrYii/stocks`;
-    // const url = `http://127.0.0.1/api/${userID}/stocks`;
+    // const url = `https://api-generator.retool.com/lLrYii/stocks`;
+    const url = `http://127.0.0.1:8000/user/${userID}/stocks/`;
     return this.fetchData(url, "GET");
   }
 
-  static async purchaseStock(userID) {
-    const url = `http://127.0.0.1/api/user/${userID}/stock/purchase`;
+  static async purchaseStock(userID, symbol, shares, average_price) {
+    const url = `http://127.0.0.1:8000/user/${userID}/stock/purchase/`;
     return this.fetchData(url, "POST", {
-      stock_symbol: "AAPL",
-      shares: 1,
-      purchase_price: 150.25,
-      purchase_date: "2021-09-01"
+      symbol: symbol,
+      shares: shares,
+      average_price: average_price,
     });
   }
 
-  static async sellStock(userID) {
-    const url = `http://127.0.0.1/api/user/${userID}/stock/sell`;
+  static async sellStock(userID, symbol) {
+    const url = `http://127.0.0.1:8000/user/${userID}/stock/sell/`;
     return this.fetchData(url, "POST", {
-      stock_symbol: "AAPL",
-      shares: 1,
-      sell_price: 150.25,
-      sell_date: "2021-09-01"
+      symbol: symbol,
     });
   }
 
   static async portfolioHistory(userID) {
-    const url = `http://127.0.0.1/api/user/${userID}/portfolio?days=X`;
+    const url = `http://127.0.0.1:8000/user/${userID}/portfolio/`;
     return this.fetchData(url, "GET", {
-      days: 30
+      days: 30,
     });
   }
 
   static async portfolioToday(userID) {
-    const url = `http://127.0.0.1/api/user/${userID}/portfolio_today`;
+    const url = `http://127.0.0.1:8000/user/${userID}/portfolio_today/`;
     return this.fetchData(url, "GET");
   }
 }
