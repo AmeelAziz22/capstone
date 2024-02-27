@@ -73,8 +73,8 @@ def generate_portfolio(request, userID):
                 new_stock = Account_Stock.objects.create(
                 user=user,
                 stock_symbol=stock['symbol'],
-                shares=stock['shares'],
-                average_price=stock['average_price']
+                shares=float(stock['shares']),
+                average_price=float(stock['average_price'])
                 )
             
             combined_daily_sum = {}
@@ -82,7 +82,7 @@ def generate_portfolio(request, userID):
             # Fetch historical data for the past 30 days for each stock and combine daily sums
             for stock in received_data:
                 symbol = stock['symbol']
-                shares = stock['shares']
+                shares = float(stock['shares'])
 
                 # Fetch historical data for the past 30 days
                 end_date = datetime.today().strftime('%Y-%m-%d')
