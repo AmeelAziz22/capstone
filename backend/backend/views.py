@@ -109,7 +109,7 @@ def update_stock(request, userID):
                     # Update shares and check if it becomes 0 (sold out), remove the stock
                     if new_shares == 0:
                         stock_to_update.delete()
-                        return JsonResponse({'message': 'Stock sold out successfully'})
+                        return JsonResponse({'message': 'Stock update successful'})
                     else:
                         stock_to_update.shares = new_shares
                 else:
@@ -118,7 +118,7 @@ def update_stock(request, userID):
                         user=user,
                         stock_symbol=received_data['symbol'],
                         shares=new_shares,
-                        average_price=received_data.get('average_price', 0.0)
+                        average_price=received_data.get('average_price', 0.0) # (TODO) Change from 0.0 to whatever price is
                     )
 
             # Check if 'average_price' key is present in received_data and stock exists
@@ -181,7 +181,7 @@ def get_user_portfolio(request, userID):
     try:
         user = User.objects.get(userID=userID)
         # Assuming "days" is provided in the request, update accordingly
-        days = 30
+        days = 30 # (TODO) Be able to change the amount of days
         today = datetime.now().date()
         start_date = today - timedelta(days=days)
         portfolio_data = PortfolioHistory.objects.filter(user=user, date__gte=start_date)
@@ -205,6 +205,7 @@ def get_user_portfolio_today(request, userID):
         return JsonResponse({'todays_value': today_portfolio_value})
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
+
 # default page
 def home(request):
     return HttpResponse("Welcome to the homepage!")
