@@ -1,5 +1,5 @@
 class API {
-  static async fetchData(url, method, body = {}) {
+  static async fetchData(url, method, body) {
     try {
       const response = await fetch(url, {
         method: method,
