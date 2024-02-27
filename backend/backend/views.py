@@ -39,8 +39,12 @@ def register_user(request):
     if request.method == 'POST':
         try:
             received_data = json.loads(request.body)
-            # Your logic to create a new user profile
-            # Example: User.objects.create(username=received_data['username'], password=received_data['password'])
+            User.objects.create(
+                first_name=received_data['first_name'],
+                last_name=received_data['last_name'],
+                username=received_data['username'],
+                password=received_data['password']
+            )
             return JsonResponse({'message': 'User profile created successfully'})
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
