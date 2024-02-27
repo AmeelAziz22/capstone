@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SymbolOverview from "./stock-widgets/symbol-overview";
 import useDeepCompareEffect from "use-deep-compare-effect";
-import { StockSummary } from "./stock-widgets/stock-chart";
+import { StockChart } from "./stock-widgets/stock-chart";
 import API from "../services/api-service";
 
 const Home = () => {
@@ -20,7 +20,7 @@ const Home = () => {
 
     // update stocks every minute
     const intervalId = setInterval(fetchAndSetStocks, 60000);
-    
+
     // Clean up interval on component unmount
     return () => clearInterval(intervalId);
   }, [stocks]);
@@ -32,7 +32,7 @@ const Home = () => {
         <div className="flex flex-col justify-center items-center">
           <SymbolOverview />
           <br></br>
-          <StockSummary stocks={stocks} />
+          <StockChart stocks={stocks} />
         </div>
       </div>
     </>
