@@ -68,6 +68,11 @@ class API {
     const url = `http://127.0.0.1:8000/user/${userID}/portfolio_today/`;
     return this.fetchData(url, "GET");
   }
+
+  static async generatePortfolio(userID, body) {
+    const url = `http://127.0.0.1:8000/user/${userID}/generate_portfolio/`;
+    return this.fetchData(url, "POST", body);
+  }
 }
 
 export default API;
