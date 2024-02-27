@@ -26,7 +26,7 @@ const StockChart = ({ ticker }) =>  {
       container.current.appendChild(script);
     }
     },
-    []
+    [ticker]
   );
 
   return (

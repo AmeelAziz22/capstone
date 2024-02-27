@@ -6,7 +6,7 @@ import '../assets/search.css'
 
 
 const StockSearch = () => {
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const [ticker,setTicker] = useState(searchParams.get("ticker"));
     const navigate = useNavigate();
 
@@ -36,7 +36,9 @@ const StockSearch = () => {
                 />
                 </form>
             </div>
-            <StockChart ticker={ticker} />
+            {ticker &&
+                <StockChart ticker={ticker} />
+            }
       </div>
     </>
   );
