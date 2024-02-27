@@ -1,7 +1,7 @@
 import React from "react";
 
 import Sidebar from "../components/sidebar";
-import Home from "../components/home";
+import Portfolio from "../components/portfolio-component";
 
 function Main() {
   return (
@@ -9,7 +9,7 @@ function Main() {
       <div className="flex flex-row">
         <Sidebar></Sidebar>
 
-        <Home></Home>
+        <Portfolio></Portfolio>
       </div>
     </>
   );

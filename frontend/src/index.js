@@ -8,6 +8,7 @@ import Main from './routes/main';
 import Login from './routes/login';
 import Register from './routes/register';
 import Explore from './routes/explore';
+import Portfolio from './routes/portfolio-page';
 import ErrorPage from './error-page';
 
 
@@ -30,6 +31,11 @@ const router = createBrowserRouter([
   {
     path: '/explore',
     element: <Explore/>,
+    errorElement: <ErrorPage />
+  },
+  {
+    path: '/portfolio',
+    element: <Portfolio/>,
     errorElement: <ErrorPage />
   }
 ])
