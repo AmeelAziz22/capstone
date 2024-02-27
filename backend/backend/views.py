@@ -160,7 +160,7 @@ def get_user_stocks(request, userID):
                 if not history.empty:
                     current_price = history["Close"].iloc[-1]  # Get the last closing price
                     stock_data["current_price"] = round(current_price, 2)  # Round to the nearest cent
-                    stock_data["price_change"] = stock_data["current_price"] - stock.average_price
+                    stock_data["price_change"] = round(stock_data["current_price"] - stock.average_price, 2)
             except Exception as e:
                 # Handle errors or lack of data as needed
                 print(f"Error fetching data for {stock.stock_symbol}: {e}")
@@ -184,41 +184,32 @@ def update_stock(request, userID):
             except Account_Stock.DoesNotExist:
                 stock_to_update = None
 
-            # Check if 'shares' key is present in received_data
-            if 'shares' in received_data:
+            # Check if 'shares' and 'average_price' keys are present in received_data
+            if 'shares' in received_data and 'average_price' in received_data:
                 new_shares = float(received_data['shares'])
+                new_average_price = float(received_data['average_price'])
+
+                if new_shares < 0:
+                    return JsonResponse({'message': 'Cannot have negative quantities of shares'})
 
                 if stock_to_update:
-                    # Update shares and calculate new average price
-                    if new_shares == 0:
-                        stock_to_update.delete()
-                        return JsonResponse({'message': 'Stock update successful'})
-                    elif new_shares < 0:
-                        return JsonResponse({'message': 'Cannot have negative quantities of shares'})
-                    else:
-                        old_shares = stock_to_update.shares
-                        old_average_price = stock_to_update.average_price
-
-                        # Calculate new average price
-                        total_shares = old_shares + new_shares
-                        new_average_price = ((old_shares * old_average_price) + (new_shares * received_data['average_price'])) / total_shares
-
-                        stock_to_update.shares = total_shares
-                        stock_to_update.average_price = new_average_price
+                    # Update shares, average price, and save changes
+                    stock_to_update.shares = new_shares
+                    stock_to_update.average_price = new_average_price
+                    stock_to_update.save()
                 else:
                     # Stock doesn't exist, create a new entry in the database
                     Account_Stock.objects.create(
                         user=user,
                         stock_symbol=received_data['symbol'],
                         shares=new_shares,
-                        average_price=float(received_data.get('average_price', 0.0))  # Change from 0.0 to whatever price is
+                        average_price=new_average_price
                     )
 
-            # Save the changes to the database
-            if stock_to_update:
-                stock_to_update.save()
+                return JsonResponse({'message': 'Stock update successful'})
+            else:
+                return JsonResponse({'error': 'Both "shares" and "average_price" are required fields'}, status=400)
 
-            return JsonResponse({'message': 'Stock update successful'})
         except (json.JSONDecodeError, User.DoesNotExist):
             return JsonResponse({'error': 'Invalid JSON data provided or User not found'}, status=400)
     else:
