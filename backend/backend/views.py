@@ -5,6 +5,7 @@ import json
 from django.db.models import Sum
 from backend_app.models import User, Account_Stock, PortfolioHistory
 from datetime import datetime, timedelta
+import yfinance as yf
 
 @csrf_exempt  # For demo purposes only; consider using proper CSRF protection in production
 def get_data(request):
@@ -19,15 +20,16 @@ def post_data(request):
         # Read the JSON data sent over in the POST request
         try:
             received_data = json.loads(request.body)
+            print(received_data[0])
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
 
         # Your logic to handle the received data
         # For example, you can access specific fields from the JSON data
-        message = received_data.get('message', 'No message provided')
+        #message = received_data.get('message', 'No message provided')
 
         # Construct the response JSON
-        response_data = {'received_message': message}
+        response_data = {'received_message': "jdjdjd"}
 
         return JsonResponse(response_data)
     else:
@@ -52,6 +54,66 @@ def register_user(request):
             return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
     else:
         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
+    
+@csrf_exempt
+def generate_portfolio(request, userID):
+    if request.method == 'POST':
+        # Read the JSON data sent over in the POST request
+        try:
+            user = User.objects.get(userID=userID)
+            received_data = json.loads(request.body)
+            for stock in received_data:
+                new_stock = Account_Stock.objects.create(
+                user=user,
+                stock_symbol=stock['symbol'],
+                shares=stock['shares'],
+                average_price=stock['average_price']
+                )
+            
+            combined_daily_sum = {}
+
+            # Fetch historical data for the past 30 days for each stock and combine daily sums
+            for stock in received_data:
+                symbol = stock['symbol']
+                shares = stock['shares']
+
+                # Fetch historical data for the past 30 days
+                end_date = datetime.today().strftime('%Y-%m-%d')
+                start_date = (datetime.today() - timedelta(days=30)).strftime('%Y-%m-%d')
+                data = yf.download(symbol, start=start_date, end=end_date)
+
+                # Calculate daily sum for each day
+                for date, row in data.iterrows():
+                    daily_sum = row['Close'] * shares
+                    if date.strftime('%Y-%m-%d') not in combined_daily_sum:
+                        combined_daily_sum[date.strftime('%Y-%m-%d')] = daily_sum
+                    else:
+                        combined_daily_sum[date.strftime('%Y-%m-%d')] += daily_sum
+                        
+            print(combined_daily_sum)
+            for date, portfolio_sum in combined_daily_sum.items():
+                PortfolioHistory.objects.create(
+                    user=user,  # Provide the user instance here
+                    date=datetime.strptime(date, '%Y-%m-%d'),
+                    portfolio_sum=portfolio_sum
+                )
+            
+            
+            
+                
+            
+        except (json.JSONDecodeError,User.DoesNotExist):
+            return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
+
+        # Your logic to handle the received data
+        # For example, you can access specific fields from the JSON data
+
+
+        return JsonResponse({"djd":"djdj"})
+    else:
+        # Handle cases where the request method is not POST
+        return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
+
 
 @csrf_exempt
 def authenticate_user(request):
