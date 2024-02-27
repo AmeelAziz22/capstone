@@ -90,7 +90,6 @@ def generate_portfolio(request, userID):
                     else:
                         combined_daily_sum[date.strftime('%Y-%m-%d')] += daily_sum
                         
-            print(combined_daily_sum)
             for date, portfolio_sum in combined_daily_sum.items():
                 PortfolioHistory.objects.create(
                     user=user,  # Provide the user instance here
@@ -109,7 +108,7 @@ def generate_portfolio(request, userID):
         # For example, you can access specific fields from the JSON data
 
 
-        return JsonResponse({"djd":"djdj"})
+        return JsonResponse({'message': 'Portfolio setup request successful'})
     else:
         # Handle cases where the request method is not POST
         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
