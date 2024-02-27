@@ -4,7 +4,7 @@ import {createBrowserRouter, RouterProvider,} from 'react-router-dom';
 
 import './styles.css';
 
-import Main from './routes/main';
+import Main from './routes/main-page';
 import Login from './routes/login';
 import Register from './routes/register';
 import Explore from './routes/explore';

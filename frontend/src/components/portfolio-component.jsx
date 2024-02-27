@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import SymbolOverview from "./stock-widgets/symbol-overview";
 import useDeepCompareEffect from "use-deep-compare-effect";
-import StockChart from "./stock-widgets/stock-chart";
+import { StockSummary } from "./stock-widgets/stock-chart";
 import API from "../services/api-service";
 
 const Home = () => {
@@ -32,7 +32,7 @@ const Home = () => {
         <div className="flex flex-col justify-center items-center">
           <SymbolOverview />
           <br></br>
-          <StockChart stocks={stocks} />
+          <StockSummary stocks={stocks} />
         </div>
       </div>
     </>
