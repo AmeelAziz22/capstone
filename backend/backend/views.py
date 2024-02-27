@@ -89,44 +89,92 @@ def get_user_stocks(request, userID):
         return JsonResponse({'error': 'User not found'}, status=404)
 
 @csrf_exempt
-def purchase_stock(request, userID):
+def update_stock(request, userID):
     if request.method == 'POST':
         try:
-            user = User.objects.get(userID=userID)
             received_data = json.loads(request.body)
+            user = User.objects.get(userID=userID)
 
-            # Update the model fields based on your actual request data
-            new_stock = Account_Stock.objects.create(
-                user=user,
-                stock_symbol=received_data['symbol'],
-                shares=received_data['shares'],
-                average_price=received_data['average_price']
-            )
+            # Check if the stock exists for the given user and symbol
+            try:
+                stock_to_update = Account_Stock.objects.get(user=user, stock_symbol=received_data['symbol'])
+            except Account_Stock.DoesNotExist:
+                stock_to_update = None
 
-            return JsonResponse({'message': 'Stock purchase request successful'})
+            # Check if 'shares' key is present in received_data
+            if 'shares' in received_data:
+                new_shares = received_data['shares']
+
+                if stock_to_update:
+                    # Update shares and check if it becomes 0 (sold out), remove the stock
+                    if new_shares == 0:
+                        stock_to_update.delete()
+                        return JsonResponse({'message': 'Stock sold out successfully'})
+                    else:
+                        stock_to_update.shares = new_shares
+                else:
+                    # Stock doesn't exist, create a new entry in the database
+                    Account_Stock.objects.create(
+                        user=user,
+                        stock_symbol=received_data['symbol'],
+                        shares=new_shares,
+                        average_price=received_data.get('average_price', 0.0)
+                    )
+
+            # Check if 'average_price' key is present in received_data and stock exists
+            if 'average_price' in received_data and stock_to_update:
+                stock_to_update.average_price = received_data['average_price']
+
+            # Save the changes to the database
+            if stock_to_update:
+                stock_to_update.save()
+
+            return JsonResponse({'message': 'Stock update successful'})
         except (json.JSONDecodeError, User.DoesNotExist):
             return JsonResponse({'error': 'Invalid JSON data provided or User not found'}, status=400)
     else:
         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
 
-@csrf_exempt
-def sell_stock(request, userID):
-    if request.method == 'POST':
-        try:
-            user = User.objects.get(userID=userID)
-            received_data = json.loads(request.body)
 
-            # Your logic to handle stock selling request
-            # Example: Update the Stock object in the database with sell details
-            # For simplicity, let's assume we delete the stock for selling
-            stock_to_sell = Account_Stock.objects.get(user=user, stock_symbol=received_data['symbol'])
-            stock_to_sell.delete()
+# @csrf_exempt
+# def purchase_stock(request, userID):
+#     if request.method == 'POST':
+#         try:
+#             user = User.objects.get(userID=userID)
+#             received_data = json.loads(request.body)
+#
+#             # Update the model fields based on your actual request data
+#             new_stock = Account_Stock.objects.create(
+#                 user=user,
+#                 stock_symbol=received_data['symbol'],
+#                 shares=received_data['shares'],
+#                 average_price=received_data['average_price']
+#             )
+#
+#             return JsonResponse({'message': 'Stock purchase request successful'})
+#         except (json.JSONDecodeError, User.DoesNotExist):
+#             return JsonResponse({'error': 'Invalid JSON data provided or User not found'}, status=400)
+#     else:
+#         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
 
-            return JsonResponse({'message': 'Stock sell request successful'})
-        except (json.JSONDecodeError, User.DoesNotExist, Account_Stock.DoesNotExist):
-            return JsonResponse({'error': 'Invalid JSON data provided or User/Stock not found'}, status=400)
-    else:
-        return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
+# @csrf_exempt
+# def sell_stock(request, userID):
+#     if request.method == 'POST':
+#         try:
+#             user = User.objects.get(userID=userID)
+#             received_data = json.loads(request.body)
+#
+#             # Your logic to handle stock selling request
+#             # Example: Update the Stock object in the database with sell details
+#             # For simplicity, let's assume we delete the stock for selling
+#             stock_to_sell = Account_Stock.objects.get(user=user, stock_symbol=received_data['symbol'])
+#             stock_to_sell.delete()
+#
+#             return JsonResponse({'message': 'Stock sell request successful'})
+#         except (json.JSONDecodeError, User.DoesNotExist, Account_Stock.DoesNotExist):
+#             return JsonResponse({'error': 'Invalid JSON data provided or User/Stock not found'}, status=400)
+#     else:
+#         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
 
 @csrf_exempt
 def get_user_portfolio(request, userID):

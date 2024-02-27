@@ -26,6 +26,7 @@ urlpatterns = [
     path('register/', views.register_user, name='register_user'),
     path('token/', views.authenticate_user, name='authenticate_user'),
     path('user/<int:userID>/stocks/', views.get_user_stocks, name='get_user_stocks'),
+    path('user/<int:userID>/stock/update/', views.update_stock, name='update_stock'),
     path('user/<int:userID>/stock/purchase/', views.purchase_stock, name='purchase_stock'),
     path('user/<int:userID>/stock/sell/', views.sell_stock, name='sell_stock'),
     path('user/<int:userID>/portfolio/', views.get_user_portfolio, name='get_user_portfolio'),
