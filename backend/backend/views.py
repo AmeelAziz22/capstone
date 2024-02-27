@@ -34,13 +34,17 @@ def post_data(request):
         # Handle cases where the request method is not POST
         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
 
-# Assume you have a User and Stock model in your Django app
-
 @csrf_exempt
 def register_user(request):
     if request.method == 'POST':
         try:
             received_data = json.loads(request.body)
+
+            # Check if a user with the provided username already exists
+            if User.objects.filter(username=received_data['username']).exists():
+                return JsonResponse({'error': 'User with this username already exists'}, status=400)
+
+            # Create a new user profile
             User.objects.create(
                 first_name=received_data['first_name'],
                 last_name=received_data['last_name'],
@@ -78,8 +82,7 @@ def get_user_stocks(request, userID):
                 "symbol": stock.stock_symbol,
                 "shares": stock.shares,
                 "average_price": stock.average_price,
-                # Add logic to fetch current_price and price_change from an external source or update your model accordingly
-                "current_price": 0.0,
+                "current_price": 0.0, # (TODO) Fetch the current price and use it to calculate a price change.
                 "price_change": 0.0
             }
             for stock in stocks
@@ -134,7 +137,6 @@ def update_stock(request, userID):
             return JsonResponse({'error': 'Invalid JSON data provided or User not found'}, status=400)
     else:
         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
-
 
 # @csrf_exempt
 # def purchase_stock(request, userID):
@@ -193,7 +195,7 @@ def get_user_portfolio(request, userID):
             }
             for entry in portfolio_data
         ]
-        return JsonResponse(portfolio_data_list, safe=False)
+        return JsonResponse(portfolio_data_list, safe=False) # (TODO) Be able to create a graph that can be broken down by stock.
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
 
