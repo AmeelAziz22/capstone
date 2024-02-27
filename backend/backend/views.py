@@ -116,6 +116,8 @@ def update_stock(request, userID):
                     if new_shares == 0:
                         stock_to_update.delete()
                         return JsonResponse({'message': 'Stock update successful'})
+                    elif float(new_shares) < 0:
+                        return JsonResponse({'message': 'Cannot have negative quantities of shares'})
                     else:
                         stock_to_update.shares = new_shares
                 else:
