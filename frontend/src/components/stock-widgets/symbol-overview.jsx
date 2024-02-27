@@ -4,12 +4,21 @@ import React, { useEffect, useRef, memo } from "react";
 function SymbolOverview({ selectedStock }) {
   const container = useRef();
 
+  if (selectedStock === null || selectedStock === undefined || selectedStock === "") {
+    selectedStock = "AAPL";
+  }
+
   useEffect(() => {
+    if (document == null) {
+      return;
+    }
+
+    const script = document.createElement("script");
     const currentContainer = container.current;
     while (currentContainer.firstChild) {
       currentContainer.removeChild(currentContainer.firstChild);
     }
-    const script = document.createElement("script");
+    
 
     console.log("selectedStock: ", selectedStock);
 
