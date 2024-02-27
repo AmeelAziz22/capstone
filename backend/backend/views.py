@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
-from backend_app.models import MyModel
+from backend_app.models import User
 
 @csrf_exempt  # For demo purposes only; consider using proper CSRF protection in production
 def get_data(request):
@@ -52,10 +52,10 @@ def authenticate_user(request):
     if request.method == 'POST':
         try:
             received_data = json.loads(request.body)
-            # Your logic to authenticate the user
-            # Example: Check if the username and password match a user in the database
-            # Return appropriate status code (200 or 500) based on authentication result
-            return JsonResponse({'message': 'Authentication successful'})
+            user = User.objects.get(username=received_data['username'], password=received_data['password']) 
+            return JsonResponse({'message': 'Authentication successful','user_id': user.userID})
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Authentication failed'}, status=401)
         except json.JSONDecodeError:
             return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
     else:
