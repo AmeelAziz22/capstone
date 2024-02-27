@@ -2,7 +2,9 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
-from backend_app.models import User
+from django.db.models import Sum
+from backend_app.models import User, Account_Stock, PortfolioHistory
+from datetime import datetime, timedelta
 
 @csrf_exempt  # For demo purposes only; consider using proper CSRF protection in production
 def get_data(request):
@@ -67,38 +69,43 @@ def authenticate_user(request):
 
 @csrf_exempt
 def get_user_stocks(request, userID):
-    # Your logic to retrieve user stocks from the database based on userID
-    # Example: stocks = Stock.objects.filter(user=userID)
-    # Create a list of dictionaries with stock information
-    stocks_data = [
-        {
-            "symbol": "AAPL",
-            "shares": 25,
-            "average_price": 150.25,
-            "current_price": 160.50,
-            "price_change": 10.25
-        },
-        {
-            "symbol": "GOOGL",
-            "shares": 15,
-            "average_price": 300.50,
-            "current_price": 310.75,
-            "price_change": 10.25
-        },
-        # Add more entries for other stocks
-    ]
-    return JsonResponse(stocks_data, safe=False)
+    try:
+        user = User.objects.get(userID=userID)
+        stocks = Account_Stock.objects.filter(user=user)
+
+        stocks_data = [
+            {
+                "symbol": stock.stock_symbol,
+                "shares": stock.shares,
+                "average_price": stock.average_price,
+                # Add logic to fetch current_price and price_change from an external source or update your model accordingly
+                "current_price": 0.0,
+                "price_change": 0.0
+            }
+            for stock in stocks
+        ]
+        return JsonResponse(stocks_data, safe=False)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
 
 @csrf_exempt
 def purchase_stock(request, userID):
     if request.method == 'POST':
         try:
+            user = User.objects.get(userID=userID)
             received_data = json.loads(request.body)
-            # Your logic to handle stock purchase request
-            # Example: Create a new Stock object in the database with purchase details
+
+            # Update the model fields based on your actual request data
+            new_stock = Account_Stock.objects.create(
+                user=user,
+                stock_symbol=received_data['symbol'],
+                shares=received_data['shares'],
+                average_price=received_data['average_price']
+            )
+
             return JsonResponse({'message': 'Stock purchase request successful'})
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
+        except (json.JSONDecodeError, User.DoesNotExist):
+            return JsonResponse({'error': 'Invalid JSON data provided or User not found'}, status=400)
     else:
         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
 
@@ -106,40 +113,50 @@ def purchase_stock(request, userID):
 def sell_stock(request, userID):
     if request.method == 'POST':
         try:
+            user = User.objects.get(userID=userID)
             received_data = json.loads(request.body)
+
             # Your logic to handle stock selling request
             # Example: Update the Stock object in the database with sell details
+            # For simplicity, let's assume we delete the stock for selling
+            stock_to_sell = Account_Stock.objects.get(user=user, stock_symbol=received_data['symbol'])
+            stock_to_sell.delete()
+
             return JsonResponse({'message': 'Stock sell request successful'})
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON data provided'}, status=400)
+        except (json.JSONDecodeError, User.DoesNotExist, Account_Stock.DoesNotExist):
+            return JsonResponse({'error': 'Invalid JSON data provided or User/Stock not found'}, status=400)
     else:
         return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
 
 @csrf_exempt
 def get_user_portfolio(request, userID):
-    # Your logic to retrieve user portfolio history from the database based on userID and days parameter
-    # Example: portfolio_data = Portfolio.objects.filter(user=userID, date__gte=(today - timedelta(days=days)))
-    # Create a list of dictionaries with portfolio information
-    portfolio_data = [
-        {
-            "date": "2022-01-15",
-            "total_value": 15000.00
-        },
-        {
-            "date": "2022-01-16",
-            "total_value": 15500.50
-        },
-        # Add more entries for the past 30 days
-    ]
-    return JsonResponse(portfolio_data, safe=False)
+    try:
+        user = User.objects.get(userID=userID)
+        # Assuming "days" is provided in the request, update accordingly
+        days = 30
+        today = datetime.now().date()
+        start_date = today - timedelta(days=days)
+        portfolio_data = PortfolioHistory.objects.filter(user=user, date__gte=start_date)
+
+        portfolio_data_list = [
+            {
+                "date": entry.date.strftime('%Y-%m-%d'),
+                "total_value": entry.portfolio_sum
+            }
+            for entry in portfolio_data
+        ]
+        return JsonResponse(portfolio_data_list, safe=False)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
 
 @csrf_exempt
 def get_user_portfolio_today(request, userID):
-    # Your logic to retrieve today's portfolio sum from the database based on userID
-    # Example: today_portfolio_value = Portfolio.objects.filter(user=userID, date=today).aggregate(Sum('total_value'))
-    today_portfolio_value = 14484.00  # Placeholder value, replace with actual value from database
-    return JsonResponse({'todays_value': today_portfolio_value})
-
+    try:
+        user = User.objects.get(userID=userID)
+        today_portfolio_value = PortfolioHistory.objects.filter(user=user, date=datetime.now().date()).aggregate(Sum('portfolio_sum'))['portfolio_sum__sum']
+        return JsonResponse({'todays_value': today_portfolio_value})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
 # default page
 def home(request):
     return HttpResponse("Welcome to the homepage!")
