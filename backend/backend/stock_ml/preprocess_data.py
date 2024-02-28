@@ -28,11 +28,50 @@ def create_dataset(dataset, close_index, time_step=1):
     dataX, dataY = [], []
     # Adjust the range to stop time_step steps before the end of the dataset
     for i in range(len(dataset) - time_step):
-        a = dataset[i:(i + time_step), :]
+        a = dataset[i:(i + time_step), :close_index]  # Exclude close_index column
         dataX.append(a)
         # Ensure we're accessing the correct future point for prediction
         dataY.append(dataset[i + time_step, close_index])
+        if i == 0:
+            print("Dataset for first iteration:", dataset[i:i+time_step+1])
+            print("DataX for first iteration:", a)
+            print("DataY for first iteration:", dataset[i + time_step, close_index])
     return np.array(dataX), np.array(dataY)
+
+# def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
+#     model = Sequential()
+#     model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
+#     model.add(Dropout(0.2))
+#     model.add(LSTM(units=50, return_sequences=True))
+#     model.add(Dropout(0.2))
+#     model.add(LSTM(units=50))
+#     model.add(Dropout(0.2))
+#     model.add(Dense(units=1))
+
+#     # Compiling the model
+#     model.compile(optimizer='adam', loss='mean_squared_error')
+
+#     model.fit(X_train, y_train, epochs=epochs_chosen, batch_size=batch_size_chosen)
+
+#     return model
+
+
+def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
+    model = Sequential()
+    # Using only one LSTM layer with fewer units
+    model.add(LSTM(units=20, input_shape=(X_train.shape[1], X_train.shape[2])))
+    # A single Dropout layer to prevent overfitting
+    model.add(Dropout(0.2))
+    # The output layer remains the same
+    model.add(Dense(units=1))
+
+    # Compiling the model
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    
+    # Training the model
+    model.fit(X_train, y_train, epochs=epochs_chosen, batch_size=batch_size_chosen)
+
+    return model
 
 
 def main():
@@ -42,38 +81,30 @@ def main():
 
     stock_data = fetch_stock_data(stock_ticker, start_date, end_date)
     train_data, test_data = split_train_test_data(stock_data, test_years=2)
-    print(train_data)
-    print(test_data)
+    print("Train Data Date Range:", train_data.index.min().date(), "to", train_data.index.max().date())
+    print("Test Data Date Range:", test_data.index.min().date(), "to", test_data.index.max().date())
+    
 
+
+    
+    time_step = 5
     sc, train_data_scaled = reshape_training_data(train_data)
-    # Creating a data structure with 60 time-steps and 1 output
-    time_step = 20
     X_train, y_train = create_dataset(train_data_scaled,3, time_step)
-
-
-    # Reshaping input to be [samples, time steps, features] which is required for LSTM
-    # X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
-
-    # Building the LSTM model
-    model = Sequential()
-    model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
-    model.add(Dropout(0.2))
-    model.add(LSTM(units=50, return_sequences=True))
-    model.add(Dropout(0.2))
-    model.add(LSTM(units=50))
-    model.add(Dropout(0.2))
-    model.add(Dense(units=1))
-
-    # Compiling the model
-    model.compile(optimizer='adam', loss='mean_squared_error')
-
-    # Fitting the model
-    # Fitting the model
-    model.fit(X_train, y_train, epochs=100, batch_size=32)
-
-    # Prepare test dataset
+    print(test_data['Close'])
+    
     test_data_scaled = sc.transform(test_data)  # Reshape test data similarly
     X_test, y_test = create_dataset(test_data_scaled, 3,time_step)
+    print(X_test)
+    # Creating a data structure with 60 time-steps and 1 output
+    
+    
+
+    model = create_model(X_train, y_train, 1, 16)
+
+    
+
+    # Prepare test dataset
+    
     
     # X_test = np.reshape(X_test, (X_test.shape[0], X_test.shape[1], 1))
 
@@ -101,9 +132,9 @@ def main():
 
     # Plotting
     print(test_data['Close'][time_step:time_step+num_predictions])
-    plt.plot(adjusted_test_datetimes, test_data['Close'][time_step:time_step+num_predictions], color='blue', label='Actual Stock Price')
     plt.plot(adjusted_test_datetimes, predicted_stock_prices_original_scale, color='red', label='Predicted Stock Price')
-
+    last_four_years_data = stock_data[stock_data.index >= stock_data.index.max() - pd.DateOffset(years=4)]
+    plt.plot(last_four_years_data.index, last_four_years_data['Close'], color='green', label='Close Price (Last Four Years)')
     plt.title('Stock Price Prediction')
     plt.xlabel('Time')
     plt.ylabel('Stock Price')
