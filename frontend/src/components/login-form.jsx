@@ -44,13 +44,13 @@ const LoginForm = () => {
         <section>
           <form onSubmit={handleLogin} className={styles.loginForm}>
             <div className={styles.inputGroup}>
-              <label className={styles.labelstyle} for="username">
+              <label className={styles.labelstyle} htmlFor="username">
                 Username
               </label>
               <input type="text" placeholder="Enter username" id="username" />
             </div>
             <div className={styles.inputGroup}>
-              <label className={styles.labelstyle} for="password">
+              <label className={styles.labelstyle} htmlFor="password">
                 Password
               </label>
               <input

@@ -8,6 +8,7 @@ import API from "../services/api-service";
 const Home = () => {
   let [stocks, setStocks] = useState([]);
   let [selectedStock, setSelectedStock] = useState("GOOG");
+  let [summaryData, setSummaryData] = useState([]);
 
   let selectStock = (stockSymbol) => {
     console.log("Selected stock: " + stockSymbol);
@@ -22,8 +23,14 @@ const Home = () => {
       console.log("Fetched stocks");
     };
 
-    // get stocks once on page load
+    const fetchandSetSummaryData = () => {
+      API.portfolioHistory(1).then(setSummaryData).catch(console.error);
+      console.log("Fetched summary data");
+    }
+
+    // get stocks and portfolio history once on page load
     fetchAndSetStocks();
+    fetchandSetSummaryData();
 
     // update stocks every minute
     const intervalId = setInterval(fetchAndSetStocks, 60000);
@@ -36,10 +43,10 @@ const Home = () => {
 
   return (
     <>
-      <div className="flex flex-grow flex-col p-8 bg-gray-800">
+      <div className="flex flex-grow flex-col p-8 ml-60">
         <h1 className="pb-8 text-white font-bold text-4xl">Portfolio</h1>
         <div className="flex flex-col justify-center items-center">
-          <PortfolioSummary />
+          <PortfolioSummary summaryData={summaryData} />
           <br></br>
           <SymbolOverview selectedStock={selectedStock} />
           <br></br>

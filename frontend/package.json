@@ -54,6 +54,7 @@
     "finnhub": "^1.2.18",
     "js-cookie": "^3.0.5",
     "react-select": "^5.8.0",
-    "react-windowed-select": "^5.2.0"
+    "react-windowed-select": "^5.2.0",
+    "tailwind-scrollbar": "^3.1.0"
   }
 }

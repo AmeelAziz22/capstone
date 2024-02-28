@@ -59,9 +59,7 @@ class API {
 
   static async portfolioHistory(userID) {
     const url = `http://127.0.0.1:8000/user/${userID}/portfolio/`;
-    return this.fetchData(url, "GET", {
-      days: 30,
-    });
+    return this.fetchData(url, "GET");
   }
 
   static async portfolioToday(userID) {

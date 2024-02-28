@@ -8,7 +8,7 @@ function Login() {
     <>
       <div className={`${styles.wrap} bg-gray-800`}>
         <a className={styles.logow} href="/#">
-          <img class="w-auto h-7" src={logo} alt="" />
+          <img className="w-auto h-7" src={logo} alt="" />
         </a>
         <LoginForm />
       </div>
