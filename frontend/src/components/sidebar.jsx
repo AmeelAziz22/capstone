@@ -1,7 +1,17 @@
 import React from "react";
 import logo from "../assets/logo.svg";
+import { useNavigate } from 'react-router-dom';
+import Cookies from 'js-cookie';
+
 
 function Sidebar() {
+  const navigate = useNavigate();
+
+  const handleLogout = (e) =>{
+    e.preventDefault()
+    Cookies.remove('user_id')
+    navigate('/login');
+  }
   return (
     <aside className="fixed top-0 left-0 flex flex-col w-64 h-screen px-5 py-8 overflow-y-auto bg-white border-r rtl:border-r-0 rtl:border-l dark:bg-gray-900 dark:border-gray-700">
       <a href="/#">
@@ -190,7 +200,8 @@ function Sidebar() {
       </div>
       <a
         className="flex items-center justify-center text-center px-3 py-2 text-gray-600 transition-colors duration-300 transform rounded-lg dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 dark:hover:text-gray-200 hover:text-gray-500 bg-blue-900"
-        href="/logout"
+        href="/logint"
+        onClick={handleLogout}
       >
         <span className="mx-2 text-sm font-medium">Logout</span>
       </a>

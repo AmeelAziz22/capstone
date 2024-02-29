@@ -6,7 +6,7 @@ import StockSearch from "../components/stock-search";
 function Explore() {
   return (
     <>
-      <div className="flex flex-row">
+      <div className="flex flex-row h-screen bg-gray-800">
         <Sidebar></Sidebar>
 
         <StockSearch></StockSearch>
