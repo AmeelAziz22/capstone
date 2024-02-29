@@ -20,6 +20,8 @@ function Sidebar() {
 
       <div className="flex flex-col justify-between flex-1 mt-6">
         <nav className="-mx-3 space-y-6 ">
+          
+          {/* CATEGORY 1 */}
           <div className="space-y-3 ">
             <label className="px-3 text-xs text-gray-500 uppercase dark:text-gray-400">
               Category 1
@@ -70,7 +72,8 @@ function Sidebar() {
             </a>
           </div>
 
-          <div className="space-y-3 ">
+          {/* CATEGORY 2 */}
+          {/* <div className="space-y-3 ">
             <label className="px-3 text-xs text-gray-500 uppercase dark:text-gray-400">
               Category 2
             </label>
@@ -140,9 +143,10 @@ function Sidebar() {
 
               <span className="mx-2 text-sm font-medium">Action 3</span>
             </a>
-          </div>
+          </div> */}
 
-          <div className="space-y-3 ">
+          {/* CATEGORY 3 */}
+          {/* <div className="space-y-3 ">
             <label className="px-3 text-xs text-gray-500 uppercase dark:text-gray-400">
               Category 3
             </label>
@@ -195,7 +199,7 @@ function Sidebar() {
 
               <span className="mx-2 text-sm font-medium">Action 2</span>
             </a>
-          </div>
+          </div> */}
         </nav>
       </div>
       <a

@@ -70,8 +70,11 @@ function SymbolOverview({ selectedStock }) {
   }, [selectedStock]);
 
   return (
-    <div className="flex items-center justify-center w-[70vw] h-[30vw]">
-      <div className="tradingview-widget-container rounded-sm" ref={container}>
+    <div className="flex items-center justify-center w-[35vw] h-[30vh] m-20">
+      <div
+        className="tradingview-widget-container rounded-sm drop-shadow-xl"
+        ref={container}
+      >
         <div className=".tradingview-widget-copyright w-0 h-0"></div>
       </div>
     </div>

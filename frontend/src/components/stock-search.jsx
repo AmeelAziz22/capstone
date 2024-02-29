@@ -1,9 +1,8 @@
 import React, { useState } from "react";
-import { StockChart } from "./stock-widgets/stock-chart";
+import { StockChart } from "./stock-widgets/stock-table";
 import { useSearchParams } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import styles from "../assets/search.module.css";
-
 
 const StockSearch = () => {
   const [searchParams] = useSearchParams();

@@ -1,4 +1,3 @@
-// TradingViewWidget.jsx
 import React from "react";
 import { Chart as chartjs } from "chart.js/auto";
 import { Chart, Line } from "react-chartjs-2";
@@ -30,20 +29,18 @@ function PortfolioSummary({ userID, summaryData }) {
     maintainAspectRatio: false,
     responsive: true,
     scales: {
-      x: 
-        {
-          // type: "time",
-        },
-      y: 
-        {
-          suggestedMin: 0,
-        },
+      x: {
+        // type: "time",
+      },
+      y: {
+        suggestedMin: 0,
+      },
     },
   };
 
   return (
-    <div className="flex items-center justify-center w-[70vw] h-[20vw]">
-        <Line data={data} width={"70%"} options={options}></Line>
+    <div className="flex items-center justify-center w-[35vw] h-[20vh]">
+      <Line data={data} width={"70%"} options={options}></Line>
     </div>
   );
 }

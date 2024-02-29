@@ -9,6 +9,8 @@ function Main() {
       <div className="flex flex-col justify-center items-center">
         <img className="w-auto h-36" src={logo} alt="" />
       </div>
+
+      {/* DIVIDER */}
       <div className="flex flex-col justify-center items-center p-10">
         <div className="h-[250px] w-px self-stretch bg-gradient-to-tr from-transparent via-neutral-500 to-transparent opacity-20 dark:opacity-100 "></div>
       </div>
