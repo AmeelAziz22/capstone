@@ -11,7 +11,6 @@ from sklearn.metrics import accuracy_score
 def fetch_stock_data(ticker, start_date, end_date):
     stock_data = yf.download(ticker, start=start_date, end=end_date)
     stock_data = stock_data.dropna()
-    print(stock_data)
     return stock_data
 
 def add_target_column(data,future_days):
@@ -69,22 +68,7 @@ def create_dataset(dataset, close_index, time_step=1):
             print("DataY for first iteration:", dataset[i + time_step, close_index])
     return np.array(dataX), np.array(dataY)
 
-# def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
-#     model = Sequential()
-#     model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train.shape[1], X_train.shape[2])))
-#     model.add(Dropout(0.2))
-#     model.add(LSTM(units=50, return_sequences=True))
-#     model.add(Dropout(0.2))
-#     model.add(LSTM(units=50))
-#     model.add(Dropout(0.2))
-#     model.add(Dense(units=1))
 
-#     # Compiling the model
-#     model.compile(optimizer='adam', loss='mean_squared_error')
-
-#     model.fit(X_train, y_train, epochs=epochs_chosen, batch_size=batch_size_chosen)
-
-#     return model
 
 
 def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
@@ -107,13 +91,15 @@ def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
 
 
 def main():
-    stock_ticker = 'ULCC'
+    stock_ticker = 'AAPL'
     start_date = '2010-01-01'
-    end_date = '2024-02-17'
+    end_date = '2024-02-27'
+    day_to_predict = 90
 
     stock_data = fetch_stock_data(stock_ticker, start_date, end_date)
-    stock_data = add_target_column(stock_data,-365)
-    # print(stock_data[['Close', 'Target']].tail(30))
+    stock_data = add_target_column(stock_data,-day_to_predict)
+
+
 
     train_data, test_data = split_train_test_data(stock_data, test_days=90)
     # print("Train Data Date Range:", train_data.index.min().date(), "to", train_data.index.max().date())
@@ -126,10 +112,9 @@ def main():
     time_step = 20
     sc, features_scaled, target = reshape_training_data(train_data)
     # X_train, y_train = create_dataset(train_data_scaled,3, time_step)
-    print(features_scaled.shape)
-    print("targt")
-    print(target)
-    print(test_data['Close'])
+    # print(features_scaled.shape)
+    # print(target)
+    # print(test_data['Close'])
     
 
     # X_test, y_test = create_dataset(test_data_scaled, 3,time_step)
