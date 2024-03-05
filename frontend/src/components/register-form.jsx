@@ -3,8 +3,7 @@ import Autocomplete, { createFilterOptions } from "@mui/material/Autocomplete";
 import TextField from "@mui/material/TextField";
 import styles from "../assets/auth.module.css";
 import API from "../services/api-service";
-import { useNavigate } from 'react-router-dom';
-
+import { useNavigate } from "react-router-dom";
 
 const RegisterForm = () => {
   const navigate = useNavigate();
@@ -80,42 +79,46 @@ const RegisterForm = () => {
     } else {
       // Handle final form submission, e.g., send data to server
       console.log(formData);
-      
-      API.register(formData.firstName,formData.lastName,formData.username, formData.password)
-      .then(data => {
-        console.log('Token response:', data);
-        if (data.message) {
-          // Authentication successful
-          console.log('Authentication successful');
-          // Redirect or set authentication state
-          const body = formData.stocks.map(stock => ({
-            symbol: stock.ticker,
-            shares: stock.quantity,
-            average_price: stock.price,
-          }));
 
-          API.generatePortfolio(data.userID,body)
-          .then(data => {
-            console.log('Token response:', data);
-            if (data.message) {
-              // Authentication successful
-              console.log('Authentication successful');
-              // Redirect or set authentication state
-              navigate('/login');
-            } else {
-              // Authentication failed
-              console.log("invalid")
-            }
-          })
-        } else {
-          // Authentication failed
-          console.log("invalid")
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        // Handle error here
-      });
+      API.register(
+        formData.firstName,
+        formData.lastName,
+        formData.username,
+        formData.password
+      )
+        .then((data) => {
+          console.log("Token response:", data);
+          if (data.message) {
+            // Authentication successful
+            console.log("Authentication successful");
+            // Redirect or set authentication state
+            const body = formData.stocks.map((stock) => ({
+              symbol: stock.ticker,
+              shares: stock.quantity,
+              average_price: stock.price,
+            }));
+
+            API.generatePortfolio(data.userID, body).then((data) => {
+              console.log("Token response:", data);
+              if (data.message) {
+                // Authentication successful
+                console.log("Authentication successful");
+                // Redirect or set authentication state
+                navigate("/login");
+              } else {
+                // Authentication failed
+                console.log("invalid");
+              }
+            });
+          } else {
+            // Authentication failed
+            console.log("invalid");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          // Handle error here
+        });
     }
   };
 
@@ -129,20 +132,27 @@ const RegisterForm = () => {
         </header>
         <div className={styles.loginForm}>
           {formData.stocks.length > 0 && (
-            <table>
-              <thead>
+            <table className=" text-gray-400 border-separate space-y-6 text-sm border-spacing-15 rounded-sm drop-shadow-lg">
+              <thead className=" bg-blue-900 text-gray-200">
                 <tr>
-                  <th>Stock Ticker</th>
-                  <th>Average Price</th>
-                  <th>Quantity</th>
+                  <th className="pl-10 pr-10">Stock Ticker</th>
+                  <th className="pl-10 pr-10">Average Price</th>
+                  <th className="pl-10 pr-10">Quantity</th>
                 </tr>
               </thead>
               <tbody>
                 {formData.stocks.map((stock, index) => (
                   <tr key={index}>
-                    <td>{stock.ticker}</td>
-                    <td>{stock.price}</td>
-                    <td>{stock.quantity}</td>
+                    <td
+                      className=" bg-slate-700 text-center p-2
+                    "
+                    >
+                      {stock.ticker}
+                    </td>
+                    <td className=" bg-slate-700 text-center p-2
+                    ">{stock.price}</td>
+                    <td className=" bg-slate-700 text-center p-2
+                    ">{stock.quantity}</td>
                   </tr>
                 ))}
               </tbody>
@@ -203,7 +213,7 @@ const RegisterForm = () => {
             {step === 2 && (
               <>
                 <form className={styles.loginForm} onSubmit={addStockPortfolio}>
-                  <div className={styles.searchStockDiv}>
+                  <div className="ring-white">
                     <label className={styles.labelstyle}>Search Stock</label>
                     <Autocomplete
                       className="text-white autocomplete"

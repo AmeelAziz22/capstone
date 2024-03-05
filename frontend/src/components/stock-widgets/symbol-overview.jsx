@@ -1,5 +1,5 @@
 // TradingViewWidget.jsx
-import React, { useEffect, useRef, memo } from "react";
+import React, { useEffect, useRef } from "react";
 
 function SymbolOverview({ selectedStock }) {
   const container = useRef();

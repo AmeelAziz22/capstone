@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 import API from "../../services/api-service";
 import Cookies from "js-cookie";
 
@@ -53,7 +53,7 @@ export const StockSummary = ({ stocks, selectStock }) => {
     }
   };
 
-  const [value, setValue] = useState(0);
+  // const [value, setValue] = useState(0);
   // const handleIncrement = () => {
   //   setValue(value + 1);
   // };

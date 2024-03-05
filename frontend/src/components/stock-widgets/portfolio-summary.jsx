@@ -1,7 +1,6 @@
 import React from "react";
-import { Chart as chartjs } from "chart.js/auto";
-import { Chart, Line } from "react-chartjs-2";
-import API from "../../services/api-service";
+import "chart.js/auto";
+import { Line } from "react-chartjs-2";
 
 function PortfolioSummary({ userID, summaryData }) {
   // console.log(summaryData);
