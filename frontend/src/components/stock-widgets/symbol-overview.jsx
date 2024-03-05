@@ -22,8 +22,6 @@ function SymbolOverview({ selectedStock }) {
       script.async = true;
       script.id = "symbol-overview";
       script.onload = () => {
-        // This callback ensures the script has loaded before attempting to use any elements it might create
-        // You might need to adjust this logic based on how the TradingView widget initializes itself
       };
       script.textContent = JSON.stringify({
         symbols: [["Apple", `${selectedStock}|1D|USD`]],
