@@ -11,4 +11,4 @@
 .env.test.local
 .env.production.local
 
-backend/__pycache__
+**/__pycache__

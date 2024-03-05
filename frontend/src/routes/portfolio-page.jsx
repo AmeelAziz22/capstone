@@ -1,17 +1,16 @@
 import React from "react";
-
 import Sidebar from "../components/sidebar";
-import Home from "../components/home";
+import Portfolio from "../components/portfolio-component";
 
 function Main() {
   return (
     <>
-      <div className="flex flex-row">
+      <div className="flex flex-row bg-gray-800 ">
         <Sidebar></Sidebar>
-
-        <Home></Home>
+        <Portfolio></Portfolio>
       </div>
     </>
   );
 }
+
 export default Main;
