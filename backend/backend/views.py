@@ -288,3 +288,4 @@ def get_user_portfolio_today(request, userID):
 # default page
 def home(request):
     return HttpResponse("Welcome to the homepage!")
+

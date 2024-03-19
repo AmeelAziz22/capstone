@@ -2,6 +2,18 @@
 """Django's command-line utility for administrative tasks."""
 import os
 import sys
+# import schedule
+# import time
+#
+# def job(t):
+#     print("I'm working...", t)
+#     return
+#
+# schedule.every().day.at("15:14").do(job,'It is 01:00')
+#
+# while True:
+#     schedule.run_pending()
+#     time.sleep(1) # wait one minute
 
 
 def main():
