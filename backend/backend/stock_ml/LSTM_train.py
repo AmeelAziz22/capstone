@@ -1,4 +1,5 @@
 import yfinance as yf
+from yahooquery import Ticker
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt 
@@ -11,6 +12,34 @@ from sklearn.metrics import accuracy_score
 def fetch_stock_data(ticker, start_date, end_date):
     stock_data = yf.download(ticker, start=start_date, end=end_date)
     stock_data = stock_data.dropna()
+    ticker_stock = Ticker(ticker)
+    profile = ticker_stock.asset_profile
+    sector = profile[ticker]['sector']
+    print(sector)
+    index = {
+        "Technology": "XLK",
+        "Healthcare": "XLV",
+        "Financial Services": "XLF",
+        "Consumer Discretionary": "XLY",
+        "Consumer Staples": "XLP",
+        "Energy": "XLE",
+        "Industrial": "XLI",
+        "Materials": "XLB",
+        "Real Estate": "XLRE",
+        "Utilities": "XLU"
+    }
+    sector_ticker = index.get(sector)
+    if sector_ticker:
+        sector_stock = yf.download(sector_ticker, start=start_date, end=end_date)[['Close']].dropna()
+        sector_stock.columns = [f'{sector}_Close']  # Rename column to avoid conflicts
+
+        stock_data = pd.merge(stock_data, sector_stock, how='left', left_index=True, right_index=True)
+    
+    economy_indicator_data = yf.download('VTI', start=start_date, end=end_date)[['Close']].dropna()
+    economy_indicator_data.columns = [f"{'VTI'}_Close"]
+    stock_data = pd.merge(stock_data, economy_indicator_data, how='left', left_index=True, right_index=True)
+
+    print(stock_data)
     return stock_data
 
 def add_target_column(data,future_days):
@@ -91,10 +120,14 @@ def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
 
 
 def main():
-    stock_ticker = 'AAPL'
+    stock_ticker = 'JPM'
     start_date = '2010-01-01'
     end_date = '2024-02-27'
-    day_to_predict = 90
+    ticker = Ticker(stock_ticker)
+    profile = ticker.asset_profile
+    sector = profile[stock_ticker]['sector']
+    print(sector)
+    day_to_predict = 465
 
     stock_data = fetch_stock_data(stock_ticker, start_date, end_date)
     stock_data = add_target_column(stock_data,-day_to_predict)
@@ -102,6 +135,8 @@ def main():
 
 
     train_data, test_data = split_train_test_data(stock_data, test_days=90)
+    print(test_data)
+    print("_+_+_+_+__+_+_+_+_+_+")
     # print("Train Data Date Range:", train_data.index.min().date(), "to", train_data.index.max().date())
     # print("Test Data Date Range:", test_data.index.min().date(), "to", test_data.index.max().date())
 
@@ -125,6 +160,8 @@ def main():
     model = create_model(features_scaled, target.values, 100, 32)
 
     features_test = test_data.iloc[:, :-1]
+    print(features_test)
+    print("()()()()()()()()()()")
     test_data_scaled = sc.transform(features_test)  # Reshape test data similarly
 
     
