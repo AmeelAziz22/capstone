@@ -286,24 +286,6 @@ def get_user_portfolio_today(request, userID):
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
 
-@csrf_exempt
-def update_predictions(request, stock):
-    if request.method == 'POST':
-        try:
-            received_data = json.loads(request.body)
-            stock = StockPrediction.objects.get(stock_symbol = stock.stock_symbol, time = stock.time, increase = stock.increase, percent = stock.percent, indicator = stock.indicator, increase_accuracy = stock.increase_accuracy, percent_accuracy = stock.percent_accuracy)
-            try:
-                stock_to_update = StockPrediction.objects.get(stock_symbol=stock.stock_symbol)
-            except StockPrediction.DoesNotExist:
-                stock_to_update = None
-            # Save the changes to the database
-            if stock_to_update:
-                stock_to_update.save()
-        except (json.JSONDecodeError, stock.DoesNotExist):
-            return JsonResponse({'error': 'Invalid JSON data provided or Stock not found'}, status=400)
-    else:
-        return JsonResponse({'error': 'This endpoint only accepts POST requests'}, status=405)
-
 # default page
 def home(request):
     return HttpResponse("Welcome to the homepage!")
