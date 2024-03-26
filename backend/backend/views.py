@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
 from django.db.models import Sum
-from backend_app.models import User, Account_Stock, PortfolioHistory
+from backend_app.models import User, Account_Stock, PortfolioHistory, StockPrediction
 from datetime import datetime, timedelta
 import yfinance as yf
 
@@ -286,6 +286,57 @@ def get_user_portfolio_today(request, userID):
     except User.DoesNotExist:
         return JsonResponse({'error': 'User not found'}, status=404)
 
+@csrf_exempt
+def get_stock_predictions(request, stock_symbol, days):
+    try:
+        prediction = StockPrediction.objects.get( stock_symbol=stock_symbol, time=days )
+        data = {
+            'stock_symbol': prediction.stock_symbol,
+            'time': prediction.time,
+            'increase': prediction.increase,
+            'percent': prediction.percent,
+            'indicator': prediction.indicator,
+            'increase_accuracy': prediction.increase_accuracy,
+            'percent_accuracy': prediction.percent_accuracy
+        }
+
+        return JsonResponse(data, safe=False)
+    except StockPrediction.DoesNotExist:
+        return JsonResponse({'error': 'Model is not ready for that stock, come back later'}, status=404)
+
+
+def save_or_update_prediction(stock_symbol, time, increase, percent, indicator, increase_accuracy, percent_accuracy):
+    try:
+        prediction = StockPrediction.objects.get(stock_symbol=stock_symbol, time=time)
+        
+        # Update existing prediction
+        prediction.increase = increase
+        prediction.percent = percent
+        prediction.indicator = indicator
+        prediction.increase_accuracy = increase_accuracy
+        prediction.percent_accuracy = percent_accuracy
+        prediction.save()
+        
+        return f"Prediction for {stock_symbol} at time {time} updated successfully."
+
+    except StockPrediction.DoesNotExist:
+        # Create a new prediction if it doesn't exist
+        prediction = StockPrediction(
+            stock_symbol=stock_symbol,
+            time=time,
+            increase=increase,
+            percent=percent,
+            indicator=indicator,
+            increase_accuracy=increase_accuracy,
+            percent_accuracy=percent_accuracy
+        )
+        prediction.save()
+        
+        return f"Prediction for {stock_symbol} at time {time} saved successfully."
+
+    except Exception as e:
+        return f"Error saving or updating prediction: {str(e)}"
+    
 # default page
 def home(request):
     return HttpResponse("Welcome to the homepage!")
