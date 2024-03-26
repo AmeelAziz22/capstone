@@ -61,36 +61,83 @@ const AIChatbot = () => {
     },
   };
 
+  let selectedStocks = [];
+  let selectedDateRange = [];
+
   const flow = {
     start: {
-      message: "Hello there! I am a demo for custom bot options!",
+      message:
+        "Hi! I am your personal AI assistant, and can help provide some analysis on your stocks.",
       transition: { duration: 1000 },
       path: "show_options",
     },
     show_options: {
-      message: "What do you want to do?",
-      options: ["Fetch Stocks", "Option 2", "Option 3"],
-      path: "process_options",
+      message: "How can I help you?",
+      options: [
+        "Analyze Stocks",
+        "Buy Stocks",
+        "Sell Stocks",
+        "Analyze Portfolio",
+      ],
+      path: (params) => {
+        switch (params.userInput) {
+          case "Analyze Stocks":
+          case "Sell Stocks":
+            return "pick_own_stocks";
+          case "Buy Stocks":
+            return "pick_external_stocks";
+          case "Analyze Portfolio":
+            // get all stocks in portfolio
+            return "pick_date_range";
+
+          default:
+            return "process_options";
+        }
+      },
     },
-    show_options_with_text: {
-      message: "What do you want to do?",
-      options: ["Fetch Stocks", "Option 2", "Option 3"],
+    pick_own_stocks: {
+      message: "Okay. What stocks do you want to use?",
+      // get selected stocks from portfolio
+      path: "pick_date_range",
+    },
+    pick_external_stocks: {
+      message: "Okay. What stocks do you want to use?",
+      // get stocks from not owned stocks
+      path: "pick_date_range",
+    },
+    pick_date_range: {
+      message: "Okay. What date range do you want to use?",
+      // get date range from user
       path: "process_options",
     },
     process_options: {
-      message: "You selected {{option}}",
+      message: `Sounds good! Let me process your request...`,
       transition: { duration: 1000 },
       path: async (params) => {
         switch (params.userInput) {
-          case "Fetch Stocks":
-            API.fetchStocks(userID)
-              .then((response) => {
-                console.log(response);
-              })
-              .catch(console.error);
+          case "Analyze Stocks":
+            // API.fetchStocks(userID)
+            //   .then((response) => {
+            //     console.log(response);
+            //   })
+            //   .catch(console.error);
+            return "";
+          case "Buy Stocks":
+            break;
+          case "Sell Stocks":
+            break;
+          case "Analyze Portfolio":
+            break;
+          default:
+            break;
         }
         return "show_options";
       },
+    },
+    end: {
+      message: "Hope this helped! ",
+      options: ["I need help with something else"],
+      path: "show_options",
     },
   };
 
