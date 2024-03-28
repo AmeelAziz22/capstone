@@ -3,6 +3,7 @@ import ChatBot from "react-chatbotify";
 import "react-chatbotify/dist/react-chatbotify.css";
 import API from "../services/api-service";
 import Cookies from "js-cookie";
+import { DropdownList } from "./dropdown-list";
 
 let userID = Cookies.get("user_id");
 
@@ -61,7 +62,7 @@ const AIChatbot = () => {
     },
   };
 
-  let selectedStocks = [];
+  let selectedStock = "";
   let selectedDateRange = [];
 
   const flow = {
@@ -96,9 +97,35 @@ const AIChatbot = () => {
       },
     },
     pick_own_stocks: {
-      message: "Okay. What stocks do you want to use?",
+      message: "Okay. What stock do you want to use?             ",
       // get selected stocks from portfolio
-      path: "pick_date_range",
+      render: async (params) => {
+        let stocks = await API.fetchStocks(userID);
+        return (
+          <div className="flex flex-row p-3 items-center">
+            <DropdownList items={stocks} />
+            <button
+              className="ml-3 mr-2 bg-chatbotDarkBlue rounded-2xl pt-2 pb-2 pl-4 pr-4 text-white"
+              onClick={() => {
+                console.log(
+                  document.querySelector("#stock-dropdown > div > div > div")
+                );
+                selectedStock = document.querySelector(
+                  "#stock-dropdown > div > div > div"
+                ).innerHTML;
+              }}
+            >
+              Confirm
+            </button>
+          </div>
+        );
+      },
+      path: async () => {
+        if (selectedStock !== "") {
+          console.log("Picking stock: ", selectedStock);
+          return "pick_date_range";
+        }
+      },
     },
     pick_external_stocks: {
       message: "Okay. What stocks do you want to use?",
