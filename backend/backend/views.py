@@ -294,7 +294,8 @@ def get_stock_predictions(request, stock_symbol, days):
             'stock_symbol': prediction.stock_symbol,
             'time': prediction.time,
             'increase': prediction.increase,
-            'percent': prediction.percent,
+            'low_percent': prediction.low_percent,
+            'high_percent': prediction.high_percent,
             'indicator': prediction.indicator,
             'increase_accuracy': prediction.increase_accuracy,
             'percent_accuracy': prediction.percent_accuracy
