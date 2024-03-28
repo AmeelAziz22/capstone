@@ -54,7 +54,8 @@ class StockPrediction(models.Model):
     stock_symbol = models.CharField(max_length=10)
     time = models.IntegerField()  # Assuming this represents time intervals
     increase = models.BooleanField()
-    percent = models.IntegerField()
+    low_percent = models.IntegerField()  # Represents low percent
+    high_percent = models.IntegerField()  # Represents high percent
     indicator = models.CharField(max_length=100)
     increase_accuracy = models.FloatField()
     percent_accuracy = models.FloatField()
