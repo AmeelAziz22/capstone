@@ -3,7 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse
 import json
 from django.db.models import Sum
-from backend_app.models import User, Account_Stock, PortfolioHistory
+from backend_app.models import User, Account_Stock, PortfolioHistory, StockPrediction
 from datetime import datetime, timedelta
 import yfinance as yf
 
