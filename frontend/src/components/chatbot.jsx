@@ -58,8 +58,19 @@ const AIChatbot = () => {
   };
   // -----------------------------------------------------------------------------------------------------
 
+  const insertMessage = (message) => {
+    setMessages((prev) => {
+      const newMessage = {
+        content: message,
+        sender: "bot",
+        type: "string",
+      };
+      return [...prev, newMessage];
+    });
+  };
+
   const options = {
-    advance: { useCustomPaths: true },
+    advance: { useCustomPaths: true, useCustomMessages: true },
 
     theme: {
       embedded: false,
@@ -255,15 +266,15 @@ const AIChatbot = () => {
                 console.log(response);
               })
               .catch(console.error);
-            return "";
+            return "end";
           case "Buy Stocks":
-            break;
+            return "end";
           case "Sell Stocks":
-            break;
+            return "end";
           case "Analyze Portfolio":
-            break;
+            return "end";
           default:
-            break;
+            return "end";
         }
         return "show_options";
       },
