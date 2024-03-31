@@ -1,7 +1,7 @@
 import React from "react";
 import Select from "react-select";
 
-export const DropdownList = ({ items }) => {
+export const DropdownList = ({ id, items }) => {
   if (!items) return null;
 
   if (items.length === 0) {
@@ -13,11 +13,11 @@ export const DropdownList = ({ items }) => {
 
   return (
     <Select
-    id="stock-dropdown"
+      id={id}
       defaultValue={"Select a stock"}
       className="w-72 bg-chatbotLightBlue"
       options={items.map((item) => {
-        return { value: item.symbol, label: item.symbol };
+        return { value: item, label: item };
       })}
     ></Select>
   );
