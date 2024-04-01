@@ -76,6 +76,11 @@ class API {
     const url = `http://127.0.0.1:8000/api/model/${symbol}/prediction/${days}/`;
     return this.fetchData(url, "GET");
   }
+
+  static async getStockIndicator(days, symbol) {
+    const url = `http://127.0.0.1:8000/api/model/${symbol}/indicator/${days}/`;
+    return this.fetchData(url, "GET");
+  }
 }
 
 export default API;
