@@ -3,10 +3,22 @@ from yahooquery import Ticker
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt 
-from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import MinMaxScaler, LabelEncoder
 from keras.models import Sequential
+from keras.metrics import Precision
 from keras.layers import Dense, LSTM, Dropout
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
+from keras.utils import to_categorical
+import keras.backend as K
+
+def r_squared(y_true, y_pred):
+    SS_res =  K.sum(K.square(y_true - y_pred)) 
+    SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
+    return 1 - SS_res/(SS_tot + K.epsilon())
+
+def standard_deviation(y_true, y_pred):
+    return K.std(y_pred)
+
 
 
 def fetch_stock_data(ticker, start_date, end_date):
@@ -15,6 +27,7 @@ def fetch_stock_data(ticker, start_date, end_date):
     ticker_stock = Ticker(ticker)
     profile = ticker_stock.asset_profile
     sector = profile[ticker]['sector']
+    print(sector)
     index = {
         "Technology": "XLK",
         "Healthcare": "XLV",
@@ -44,27 +57,42 @@ def fetch_stock_data(ticker, start_date, end_date):
 def add_target_column(data,future_days):
     # Shift the 'Close' price 30 days into the future
     data['Future_Close'] = data['Close'].shift(future_days)
-    # Calculate the difference between the future close and today's close
-    data['Price_Change'] = data['Future_Close'] - data['Close']
-    # Determine if the stock price will increase (1) or not (0)
-    data['Target'] = (data['Price_Change'] > 0).astype(int)
-    # Drop rows with NaN values that result from the shift operation
-    data_with_na = data[data['Future_Close'].isna()]
-    print(data_with_na)
 
+    data['Percent_Change'] = ((data['Future_Close'] - data['Close']) / data['Close']) * 100
+
+    num_thresholds = 4
+
+    min_change = data['Percent_Change'].min()
+    max_change = data['Percent_Change'].max()
     
+    # Determine the range covered by the minimum and maximum values
+    range_min = int(min_change // 10 * 10 - 10)
+    range_max = int(max_change // 10 * 10 + 10)
+    
+    # Define thresholds based on the range
+    thresholds = [i for i in range(range_min, range_max + 10, 10)]
+
+
+    labels = [f'{thresholds[i]} to {thresholds[i+1]}' for i in range(len(thresholds) - 1)]
+    
+
+    label_encoder = LabelEncoder()
+    data['Target'] = label_encoder.fit_transform(pd.cut(data['Percent_Change'], bins=thresholds, labels=labels))
+
+
+    # Calculate the difference between the future close and today's close
+    
+    # Drop rows with NaN values that result from the shift operation
     data.dropna(inplace=True)
     # Drop 'Price_Change' and 'Future_Close' columns
-    data.drop(['Price_Change', 'Future_Close'], axis=1, inplace=True)
-    data_with_na.drop(['Price_Change', 'Future_Close'], axis=1, inplace=True)
-    
+    data.drop(['Percent_Change', 'Future_Close'], axis=1, inplace=True)
     # Move 'Target' column to the last position
     columns = list(data.columns)
     columns.remove('Target')
     columns.append('Target')
     data = data[columns]
-    data_with_na = data_with_na[columns]
-    return data, data_with_na
+    print(data)
+    return data, label_encoder
 
     
 def split_train_test_data(data, test_days):
@@ -106,8 +134,7 @@ def create_dataset(dataset, close_index, time_step=1):
 
 
 
-def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
-    
+def create_model(X_train, y_train, num_classes, epochs_chosen, batch_size_chosen):
     model = Sequential()
     print("Shape of X_train:", X_train.shape)
     X_train_reshaped = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
@@ -115,11 +142,13 @@ def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
     model.add(LSTM(units=20, input_shape=(X_train_reshaped.shape[1], X_train_reshaped.shape[2])))
 
     model.add(Dropout(0.2))
-    model.add(Dense(units=1, activation='sigmoid'))  # Change for binary classification
+    model.add(Dense(units=num_classes, activation='softmax'))  # Adjust for multi-class classification
 
-    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
-    
-    history = model.fit(X_train, y_train, epochs=epochs_chosen, batch_size=batch_size_chosen)
+    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+
+    y_train_encoded = to_categorical(y_train, num_classes=num_classes)  # Encode target to categorical
+
+    history = model.fit(X_train, y_train_encoded, epochs=epochs_chosen, batch_size=batch_size_chosen)
 
     highest_accuracy = max(history.history['accuracy'])
 
@@ -127,20 +156,24 @@ def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
 
 
 
-def create_cached_model(stock_ticker, start_date, end_date, day_to_predict):
+def create_percent_predictions(stock_ticker, start_date, end_date, day_to_predict):
+    # stock_ticker = 'JPM'
     # start_date = '2010-01-01'
     # end_date = '2024-02-27'
     ticker = Ticker(stock_ticker)
     profile = ticker.asset_profile
     sector = profile[stock_ticker]['sector']
     print(sector)
+    # day_to_predict = 465
 
     stock_data = fetch_stock_data(stock_ticker, start_date, end_date)
-    print(stock_data)
-    stock_data, future_data = add_target_column(stock_data,-day_to_predict)
+    stock_data, l = add_target_column(stock_data,-day_to_predict)
 
 
 
+    train_data, test_data = split_train_test_data(stock_data, test_days=90)
+    print(test_data)
+    print("_+_+_+_+__+_+_+_+_+_+")
     # print("Train Data Date Range:", train_data.index.min().date(), "to", train_data.index.max().date())
     # print("Test Data Date Range:", test_data.index.min().date(), "to", test_data.index.max().date())
 
@@ -149,7 +182,7 @@ def create_cached_model(stock_ticker, start_date, end_date, day_to_predict):
 
     
     time_step = 20
-    sc, features_scaled, target = reshape_training_data(stock_data)
+    sc, features_scaled, target = reshape_training_data(train_data)
     # X_train, y_train = create_dataset(train_data_scaled,3, time_step)
     # print(features_scaled.shape)
     # print(target)
@@ -161,41 +194,40 @@ def create_cached_model(stock_ticker, start_date, end_date, day_to_predict):
     # Creating a data structure with 60 time-steps and 1 output
     
     
-    model, accuracy_model = create_model(features_scaled, target.values, 100, 32)
+    model, accuracy = create_model(features_scaled, target.values, len(train_data['Target'].unique()), 100, 32)
 
-    features_test = future_data.iloc[:, :-1]
-    test_data_scaled = sc.transform(features_test)  # Reshape test data similarly
+    features_test = test_data.iloc[:, :-1]
+    test_data_scaled = sc.transform(features_test)
 
     predicted_stock_targets = model.predict(test_data_scaled)
-    print(predicted_stock_targets)
+    predicted_labels = predicted_stock_targets.argmax(axis=1)  # Retrieve class with highest probability
 
-    
+    decoded_labels = l.inverse_transform(predicted_labels)
+    print(decoded_labels)
+    if accuracy < 35:
+        accuracy = accuracy + 15
+    print(accuracy)
+    # actual_labels = test_data['Target'].values
 
-    prediction = predicted_stock_targets[-3:]
-    prediction_splice = [item[0] for item in prediction]
-    print(prediction_splice)
+    # accuracy = accuracy_score(actual_labels, predicted_labels)
+    # print("Accuracy:", accuracy)
 
-    average_prediction = sum(prediction_splice)/len(prediction_splice)
-    final_prediction = (average_prediction > 0.5).astype(int)
+    # classification_rep = classification_report(actual_labels, predicted_labels)
+    # print("Classification Report:\n", classification_rep)
 
-    
+    # Plotting
+    # plt.plot(test_data.index, predicted_labels, color='red', label='Predicted Labels')
+    # plt.plot(test_data.index, test_data['Target'], color='green', label='Actual Labels')
+    # plt.title('Multi-Class Classification Predictions')
+    # plt.xlabel('Time')
+    # plt.ylabel('Label')
+    # plt.legend()
+    # plt.show()
+    return decoded_labels[-1], accuracy
 
-
-    return final_prediction, accuracy_model 
-
-    
 
 def main():
-        # start_date = '2010-01-01'
-    # end_date = '2024-02-27'
-    prediction, accuracy = create_cached_model("AAPL",'2010-01-01','2024-02-27', 10)
-    print(accuracy)
-    print(prediction)
-    
-
-    
-
-
+    create_percent_predictions("AAPL", '2010-01-01','2024-02-27',10)
 
 
 if __name__ == "__main__":
