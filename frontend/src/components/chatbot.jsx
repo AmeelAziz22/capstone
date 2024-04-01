@@ -16,6 +16,7 @@ const AIChatbot = () => {
   const [selectedDateRange, setSelectedDateRange] = React.useState("");
   const [stockElemIndex, setStockElemIndex] = React.useState(0);
   const [dateElemIndex, setDateElemIndex] = React.useState(0);
+  const [allStockPred,setAllStockPred] = React.useState([]);
   const dateRanges = new Map();
   dateRanges.set("2 Weeks", 10);
   dateRanges.set("1 Month", 20);
@@ -331,11 +332,55 @@ const AIChatbot = () => {
 
           // SELL STOCKS
           case "Sell Stocks":
-            return "end";
+            await API.getStockPredictions(selectedDateRange, selectedStock)
+            .then((response) => {
+              console.log(response);
+              if (response["increase"] === true) {
+                prepCustomMessage(
+                  `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
+                  "end"
+                );
+              } else {
+                prepCustomMessage(
+                  `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
+                  "sell_decrease"
+                );
+              }
+            })
+            .catch(console.error);
+          return "custom_message";
 
           // ANALYZE PORTFOLIO
           case "Analyze Portfolio":
-            return "end";
+            let response = await API.fetchStocks(userID)
+            const stocks = response.map(stock => stock.symbol);
+            response = await API.getMultipleStockPredictions(selectedDateRange, stocks)
+            setAllStockPred(Object.values(response));
+            const increaseValues = Object.values(response).map(data => data.increase);
+  
+            if (increaseValues.some(val => val === undefined)) {
+              prepCustomMessage(
+                "We dont have all the stock in your portfolio ready for analysis, come back later",
+                "end"
+              );
+            } else if (increaseValues.every(val => val === true)) {
+              prepCustomMessage(
+                `Based on our models we expect your portfolio to increase by the next ${selectedDateRange} days`,
+                "portfolio_options"
+              );
+            } else if (increaseValues.every(val => val === false)) {
+              prepCustomMessage(
+                `Based on our models we expect your portfolio to decrease by the next ${selectedDateRange} days`,
+                "portfolio_options"
+              );
+            } else {
+              prepCustomMessage(
+                `Based on our models your portfolio contains stocks with both increasing and decreasing projections within ${selectedDateRange} days`,
+                "portfolio_options"
+              );
+            }
+            return "custom_message";
+
 
           // STOCK INDICATOR
           case "Stock Indicator":
@@ -345,7 +390,7 @@ const AIChatbot = () => {
             ).then((response) => {
               console.log(response);
               prepCustomMessage(
-                `The stock indicator for ${selectedStock} increasing is "${response["indicator"]}"`,
+                `The stock indicator for ${selectedStock} change in the next ${selectedDateRange} days is "${response["indicator"]}"`,
                 "end"
               );
             });
@@ -376,6 +421,61 @@ const AIChatbot = () => {
           return "end";
         }
       },
+    },
+    sell_decrease: {
+      message:
+        "Since the stock is likely to decrease we recommend you sell, I can calculate more information for you:",
+      options: ["Stock Indicator", "Projected Graph", "No, I'm good"],
+      path: (params) => {
+        if (params.userInput === "Stock Indicator") {
+          setSelectedOption("Stock Indicator");
+          return "process_options";
+        } else if (params.userInput === "Projected Graph") {
+          setSelectedOption("Projected Graph");
+          return "end";
+        } else {
+          return "end";
+        }
+      },
+    },
+    portfolio_options: {
+      message:
+        "Would you like more infomation about the performance of your specific stocks?",
+      options: ["Show stock predictions", "No, I'm good"],
+      path: (params) => {
+        if (params.userInput === "Show stock predictions") {
+          console.log(allStockPred)
+          return "stock_predictions";
+        } else {
+          return "end";
+        }
+      },
+    },
+    stock_predictions: {
+      render:  
+      <div className="flex flex-col align-middle justify-center">
+      <h2 className="text-white text-center">Stock Predictions</h2>
+      <table className="mx-8 text-gray-400 border-separate space-y-6 text-sm border-spacing-15 rounded-sm drop-shadow-lg">
+        <thead className=" bg-blue-900 text-gray-200">
+          <tr>
+            <th className="p-3">Symbol</th>
+            <th className="p-3 text-center">Prediction</th>
+            <th className="p-3 text-center">% Accuracy</th>
+          </tr>
+        </thead>
+        <tbody>
+          {allStockPred.map((stock, index) => (
+            <tr key={index}>
+              <td>{stock.stock_symbol}</td>
+              <td>{stock.increase ? 'Increase' : 'Decrease'}</td>
+              <td>{stock.percent_accuracy}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>,
+      transition: { duration: 1000 },
+      path: 'end'
     },
     custom_message: {
       message: () => {

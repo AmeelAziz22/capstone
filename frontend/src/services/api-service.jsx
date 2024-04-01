@@ -75,15 +75,33 @@ class API {
     return this.fetchData(url, "GET");
   }
 
+  static async getMultipleStockPredictions(days, symbols) {
+    let predictions = {}
+    for (const symbol of symbols){
+      const url = `http://127.0.0.1:8000/api/model/${symbol}/prediction/${days}/`;
+      let response = await this.fetchData(url, "GET");
+      predictions[symbol] = response
+    }
+    return predictions
+  }
+
   static async getStockIndicator(days, symbol) {
     const url = `http://127.0.0.1:8000/api/model/${symbol}/indicator/${days}/`;
     return this.fetchData(url, "GET");
   }
 
   static async getAllStocks() {
-    const url =
+    // cant include body and header in get request to url due to cors, so i am doing it manually here
+    try {
+      const url =
       "https://finnhub.io/api/v1/stock/symbol?token=cncobthr01qkavtmr65gcncobthr01qkavtmr660&exchange=US";
-    return this.fetchData(url, "GET");
+      const response = await fetch(url);
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      throw error;
+    }
   }
 }
 
