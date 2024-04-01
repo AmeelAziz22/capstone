@@ -35,8 +35,6 @@ class API {
   }
 
   static async fetchStocks(userID) {
-    // temp api endpoint for now, till backend is ready
-    // const url = `https://api-generator.retool.com/lLrYii/stocks`;
     const url = `http://127.0.0.1:8000/user/${userID}/stocks/`;
     return this.fetchData(url, "GET");
   }
@@ -83,20 +81,10 @@ class API {
   }
 
   static async getAllStocks() {
-    try {
-      const response = await fetch(
-        "https://finnhub.io/api/v1/stock/symbol?token=cncobthr01qkavtmr65gcncobthr01qkavtmr660&exchange=US"
-      );
-      if (!response.ok) {
-        throw new Error("Failed to fetch stock data");
-      }
-      let stocks = await response.json();
-      return stocks;
-    } catch (error) {
-      console.error("Error fetching stock data:", error);
-    }
+    const url =
+      "https://finnhub.io/api/v1/stock/symbol?token=cncobthr01qkavtmr65gcncobthr01qkavtmr660&exchange=US";
+    return this.fetchData(url, "GET");
   }
-
 }
 
 export default API;
