@@ -306,13 +306,14 @@ def get_stock_predictions(request, stock_symbol, days):
         return JsonResponse({'error': 'Model is not ready for that stock, come back later'}, status=404)
 
 
-def save_or_update_prediction(stock_symbol, time, increase, percent, indicator, increase_accuracy, percent_accuracy):
+def save_or_update_prediction(stock_symbol, time, increase, low_percent, high_percent, indicator, increase_accuracy, percent_accuracy):
     try:
         prediction = StockPrediction.objects.get(stock_symbol=stock_symbol, time=time)
         
         # Update existing prediction
         prediction.increase = increase
-        prediction.percent = percent
+        prediction.low_percent = low_percent
+        prediction.high_percent = high_percent
         prediction.indicator = indicator
         prediction.increase_accuracy = increase_accuracy
         prediction.percent_accuracy = percent_accuracy
@@ -326,7 +327,8 @@ def save_or_update_prediction(stock_symbol, time, increase, percent, indicator, 
             stock_symbol=stock_symbol,
             time=time,
             increase=increase,
-            percent=percent,
+            low_percent=low_percent,
+            high_percent=high_percent,
             indicator=indicator,
             increase_accuracy=increase_accuracy,
             percent_accuracy=percent_accuracy

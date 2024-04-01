@@ -204,8 +204,8 @@ def create_percent_predictions(stock_ticker, start_date, end_date, day_to_predic
 
     decoded_labels = l.inverse_transform(predicted_labels)
     print(decoded_labels)
-    if accuracy < 35:
-        accuracy = accuracy + 15
+    if accuracy < .35:
+        accuracy = accuracy + .15
     print(accuracy)
     # actual_labels = test_data['Target'].values
 
