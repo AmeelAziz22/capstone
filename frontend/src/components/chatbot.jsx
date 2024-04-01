@@ -224,7 +224,7 @@ const AIChatbot = () => {
       // get selected stocks from portfolio
       render: async (params) => {
         // TODO add external stock fetching
-        let stocks = await API.fetchStocks(userID);
+        let stocks = await API.getAllStocks();
         setStockElemIndex(stockElemIndex + 1);
         return (
           <div
@@ -234,7 +234,7 @@ const AIChatbot = () => {
             <DropdownList
               id={`stock-dropdown-${stockElemIndex}`}
               items={stocks.map((stock) => {
-                return stock.symbol;
+                return stock.displaySymbol;
               })}
             />
             <button
