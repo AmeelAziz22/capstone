@@ -9,9 +9,13 @@ let userID = Cookies.get("user_id");
 
 const AIChatbot = () => {
   const [paths, setPaths] = React.useState(["start"]);
+  const [message, setMessage] = React.useState("");
+  const [nextPath, setNextPath] = React.useState("");
   const [selectedOption, setSelectedOption] = React.useState("");
   const [selectedStock, setSelectedStock] = React.useState("");
   const [selectedDateRange, setSelectedDateRange] = React.useState("");
+  const [stockElemIndex, setStockElemIndex] = React.useState(0);
+  const [dateElemIndex, setDateElemIndex] = React.useState(0);
   const dateRanges = new Map();
   dateRanges.set("2 Weeks", 10);
   dateRanges.set("1 Month", 20);
@@ -23,16 +27,31 @@ const AIChatbot = () => {
   // These functions fix up the button and dropdown after selection, then moves to the next step
   // -----------------------------------------------------------------------------------------------------
   const confirmStockPick = () => {
-    setSelectedStock(
-      document.querySelector("#stock-dropdown > div > div > div").innerHTML
+    console.log(
+      document.querySelector(
+        `#stock-dropdown-${stockElemIndex} > div > div > div`
+      ).innerHTML
     );
-    document.querySelector("#confirm-stock-btn").innerHTML = selectedStock;
-    document.querySelector("#confirm-stock-btn");
-    document.querySelector("#confirmStockWrapper").classList.add("justify-end");
-    document.querySelector("#confirm-stock-btn").disabled = true;
+    setSelectedStock(
+      document.querySelector(
+        `#stock-dropdown-${stockElemIndex} > div > div > div`
+      ).innerHTML
+    );
+    document.querySelector(`#confirm-stock-btn-${stockElemIndex}`).innerHTML =
+      document.querySelector(
+        `#stock-dropdown-${stockElemIndex} > div > div > div`
+      ).innerHTML;
+    document.querySelector(
+      `#confirm-stock-btn-${stockElemIndex}`
+    ).disabled = true;
+    document
+      .querySelector(`#confirmStockWrapper-${stockElemIndex}`)
+      .classList.add("justify-end");
 
     //disable dropdown selector
-    document.querySelector("#stock-dropdown").classList.add("hidden");
+    document
+      .querySelector(`#stock-dropdown-${stockElemIndex}`)
+      .classList.add("hidden");
     setPaths((prev) => {
       // console.log("Path: ", ...prev);
       return [...prev, "pick_date_range"];
@@ -42,15 +61,25 @@ const AIChatbot = () => {
   const confirmDatePick = () => {
     setSelectedDateRange(
       dateRanges.get(
-        document.querySelector("#date-dropdown > div > div > div").innerHTML
+        document.querySelector(
+          `#date-dropdown-${dateElemIndex} > div > div > div`
+        ).innerHTML
       )
     );
-    document.querySelector("#confirm-date-btn").innerHTML = selectedStock;
-    document.querySelector("#confirm-date-btn");
-    document.querySelector("#confirmDateWrapper").classList.add("justify-end");
-    document.querySelector("#confirm-date-btn").innerHTML = selectedDateRange;
+    document.querySelector(`#confirm-date-btn-${dateElemIndex}`).innerHTML =
+      document.querySelector(
+        `#date-dropdown-${dateElemIndex} > div > div > div`
+      ).innerHTML;
+    document.querySelector(
+      `#confirm-date-btn-${dateElemIndex}`
+    ).disabled = true;
+    document
+      .querySelector(`#confirmDateWrapper-${dateElemIndex}`)
+      .classList.add("justify-end");
+
     //disable dropdown selector
-    document.querySelector("#date-dropdown").classList.add("hidden");
+    let thing = document.querySelector(`#date-dropdown-${dateElemIndex}`);
+    thing.classList.add("hidden");
     setPaths((prev) => {
       // console.log("Path: ", ...prev);
       return [...prev, "process_options"];
@@ -58,19 +87,17 @@ const AIChatbot = () => {
   };
   // -----------------------------------------------------------------------------------------------------
 
-  const insertMessage = (message) => {
-    setMessages((prev) => {
-      const newMessage = {
-        content: message,
-        sender: "bot",
-        type: "string",
-      };
-      return [...prev, newMessage];
+  const prepCustomMessage = (message, nextPath) => {
+    setMessage(() => {
+      return message;
+    });
+    setNextPath(() => {
+      return nextPath;
     });
   };
 
   const options = {
-    advance: { useCustomPaths: true, useCustomMessages: true },
+    advance: { useCustomPaths: true },
 
     theme: {
       embedded: false,
@@ -163,19 +190,22 @@ const AIChatbot = () => {
       // get selected stocks from portfolio
       render: async (params) => {
         let stocks = await API.fetchStocks(userID);
+        setStockElemIndex((prev) => {
+          return prev + 1;
+        });
         return (
           <div
-            id="confirmStockWrapper"
+            id={`confirmStockWrapper-${stockElemIndex}`}
             className="flex flex-row p-3 items-center"
           >
             <DropdownList
-              id="stock-dropdown"
+              id={`stock-dropdown-${stockElemIndex}`}
               items={stocks.map((stock) => {
                 return stock.symbol;
               })}
             />
             <button
-              id="confirm-stock-btn"
+              id={`confirm-stock-btn-${stockElemIndex}`}
               className="ml-3 mr-2 bg-chatbotDarkBlue rounded-2xl pt-2 pb-2 pl-4 pr-4 text-white"
               onClick={confirmStockPick}
             >
@@ -228,17 +258,20 @@ const AIChatbot = () => {
     pick_date_range: {
       message: "Okay. What date range do you want to use?",
       render: async (params) => {
+        setDateElemIndex((prev) => {
+          return prev + 1;
+        });
         return (
           <div
-            id="confirmDateWrapper"
+            id={`confirmDateWrapper-${dateElemIndex}`}
             className="flex flex-row p-3 items-center"
           >
             <DropdownList
-              id="date-dropdown"
+              id={`date-dropdown-${dateElemIndex}`}
               items={Array.from(dateRanges.keys())}
             />
             <button
-              id="confirm-date-btn"
+              id={`confirm-date-btn-${dateElemIndex}`}
               className="ml-3 mr-2 bg-chatbotDarkBlue rounded-2xl pt-2 pb-2 pl-4 pr-4 text-white"
               onClick={confirmDatePick}
             >
@@ -258,15 +291,26 @@ const AIChatbot = () => {
       message: `Sounds good! Let me process your request...`,
       transition: { duration: 1000 },
       path: async (params) => {
-        console.log("Selected option: ", selectedOption);
+        // console.log("Selected option: ", selectedOption);
         switch (selectedOption) {
           case "Analyze Stocks":
-            API.getStockPredictions(selectedDateRange, selectedStock)
+            await API.getStockPredictions(selectedDateRange, selectedStock)
               .then((response) => {
                 console.log(response);
+                if (response["increase"] == true) {
+                  prepCustomMessage(
+                    `The stock ${selectedStock} is expected to increase in value.`,
+                    "end"
+                  );
+                } else {
+                  prepCustomMessage(
+                    `The stock ${selectedStock} is expected to decrease in value.`,
+                    "end"
+                  );
+                }
               })
               .catch(console.error);
-            return "end";
+            return "custom_message";
           case "Buy Stocks":
             return "end";
           case "Sell Stocks":
@@ -279,10 +323,28 @@ const AIChatbot = () => {
         return "show_options";
       },
     },
+    custom_message: {
+      message: () => {
+        console.log("Next path: ", nextPath);
+        return message;
+      },
+      transition: { duration: 1000 },
+      path: nextPath,
+    },
     end: {
-      message: "Hope this helped! ",
-      options: ["I need help with something else"],
-      path: "show_options",
+      message: "Hope this helped! Do you need help with anything else?",
+      options: ["Yes", "No"],
+      path: (params) => {
+        if (params.userInput == "yes") {
+          return "show_options";
+        } else {
+          return "quit";
+        }
+      },
+    },
+    quit: {
+      message: "Goodbye!",
+      end: true,
     },
   };
 
