@@ -339,16 +339,17 @@ const AIChatbot = () => {
 
           // STOCK INDICATOR
           case "Stock Indicator":
-            await API.getStockIndicator(selectedDateRange, selectedStock).then(
-              (response) => {
-                console.log(response);
-                prepCustomMessage(
-                  `The stock ${selectedStock} has a ${response["indicator"]} indicator.`,
-                  "end"
-                );
-              }
-            );
-            return "end";
+            await API.getStockPredictions(
+              selectedDateRange,
+              selectedStock
+            ).then((response) => {
+              console.log(response);
+              prepCustomMessage(
+                `The stock indicator for ${selectedStock} increasing is "${response["indicator"]}"`,
+                "end"
+              );
+            });
+            return "custom_message";
 
           // PROJECTED GRAPH
           case "Projected Graph":
@@ -362,7 +363,7 @@ const AIChatbot = () => {
     },
     buy_increase: {
       message:
-        "Since the stock is likely to increase, I can calculate more information for you.",
+        "Since the stock is likely to increase, I can calculate more information for you:",
       options: ["Stock Indicator", "Projected Graph", "No, I'm good"],
       path: (params) => {
         if (params.userInput === "Stock Indicator") {
