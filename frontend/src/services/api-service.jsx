@@ -81,6 +81,22 @@ class API {
     const url = `http://127.0.0.1:8000/api/model/${symbol}/indicator/${days}/`;
     return this.fetchData(url, "GET");
   }
+
+  static async getAllStocks() {
+    try {
+      const response = await fetch(
+        "https://finnhub.io/api/v1/stock/symbol?token=cncobthr01qkavtmr65gcncobthr01qkavtmr660&exchange=US"
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch stock data");
+      }
+      let stocks = await response.json();
+      return stocks;
+    } catch (error) {
+      console.error("Error fetching stock data:", error);
+    }
+  }
+
 }
 
 export default API;
