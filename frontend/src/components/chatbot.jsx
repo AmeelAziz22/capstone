@@ -190,9 +190,7 @@ const AIChatbot = () => {
       // get selected stocks from portfolio
       render: async (params) => {
         let stocks = await API.fetchStocks(userID);
-        setStockElemIndex((prev) => {
-          return prev + 1;
-        });
+        setStockElemIndex(stockElemIndex + 1);
         return (
           <div
             id={`confirmStockWrapper-${stockElemIndex}`}
@@ -227,19 +225,20 @@ const AIChatbot = () => {
       render: async (params) => {
         // TODO add external stock fetching
         let stocks = await API.fetchStocks(userID);
+        setStockElemIndex(stockElemIndex + 1);
         return (
           <div
-            id="confirmStockWrapper"
+            id={`confirmStockWrapper-${stockElemIndex}`}
             className="flex flex-row p-3 items-center"
           >
             <DropdownList
-              id="stock-dropdown"
+              id={`stock-dropdown-${stockElemIndex}`}
               items={stocks.map((stock) => {
                 return stock.symbol;
               })}
             />
             <button
-              id="confirm-stock-btn"
+              id={`confirm-stock-btn-${stockElemIndex}`}
               className="ml-3 mr-2 bg-chatbotDarkBlue rounded-2xl pt-2 pb-2 pl-4 pr-4 text-white"
               onClick={confirmStockPick}
             >
@@ -258,9 +257,7 @@ const AIChatbot = () => {
     pick_date_range: {
       message: "Okay. What date range do you want to use?",
       render: async (params) => {
-        setDateElemIndex((prev) => {
-          return prev + 1;
-        });
+        setDateElemIndex(dateElemIndex + 1);
         return (
           <div
             id={`confirmDateWrapper-${dateElemIndex}`}
@@ -291,36 +288,92 @@ const AIChatbot = () => {
       message: `Sounds good! Let me process your request...`,
       transition: { duration: 1000 },
       path: async (params) => {
-        // console.log("Selected option: ", selectedOption);
         switch (selectedOption) {
+          // ANALYZE STOCKS
           case "Analyze Stocks":
             await API.getStockPredictions(selectedDateRange, selectedStock)
               .then((response) => {
                 console.log(response);
-                if (response["increase"] == true) {
+                if (response["increase"] === true) {
                   prepCustomMessage(
-                    `The stock ${selectedStock} is expected to increase in value.`,
+                    `The stock ${selectedStock} is expected to increase in value (${response["percent_accuracy"]}% confidence).`,
                     "end"
                   );
                 } else {
                   prepCustomMessage(
-                    `The stock ${selectedStock} is expected to decrease in value.`,
+                    `The stock ${selectedStock} is expected to decrease in value (${response["percent_accuracy"]}% confidence).`,
                     "end"
                   );
                 }
               })
               .catch(console.error);
             return "custom_message";
+
+          // BUY STOCKS
           case "Buy Stocks":
-            return "end";
+            await API.getStockPredictions(selectedDateRange, selectedStock)
+              .then((response) => {
+                console.log(response);
+                if (response["increase"] === true) {
+                  prepCustomMessage(
+                    `The stock ${selectedStock} is expected to increase in value (${response["percent_accuracy"]}% confidence).`,
+                    "buy_increase"
+                  );
+                } else {
+                  prepCustomMessage(
+                    `The stock ${selectedStock} is expected to decrease in value (${response["percent_accuracy"]}% confidence).`,
+                    "end"
+                  );
+                }
+              })
+              .catch(console.error);
+            return "custom_message";
+
+          // SELL STOCKS
           case "Sell Stocks":
             return "end";
+
+          // ANALYZE PORTFOLIO
           case "Analyze Portfolio":
             return "end";
+
+          // STOCK INDICATOR
+          case "Stock Indicator":
+            await API.getStockIndicator(selectedDateRange, selectedStock).then(
+              (response) => {
+                console.log(response);
+                prepCustomMessage(
+                  `The stock ${selectedStock} has a ${response["indicator"]} indicator.`,
+                  "end"
+                );
+              }
+            );
+            return "end";
+
+          // PROJECTED GRAPH
+          case "Projected Graph":
+            return "end";
+
+          // DEFAULT
           default:
             return "end";
         }
-        return "show_options";
+      },
+    },
+    buy_increase: {
+      message:
+        "Since the stock is likely to increase, I can calculate more information for you.",
+      options: ["Stock Indicator", "Projected Graph", "No, I'm good"],
+      path: (params) => {
+        if (params.userInput === "Stock Indicator") {
+          setSelectedOption("Stock Indicator");
+          return "process_options";
+        } else if (params.userInput === "Projected Graph") {
+          setSelectedOption("Projected Graph");
+          return "end";
+        } else {
+          return "end";
+        }
       },
     },
     custom_message: {
@@ -335,7 +388,7 @@ const AIChatbot = () => {
       message: "Hope this helped! Do you need help with anything else?",
       options: ["Yes", "No"],
       path: (params) => {
-        if (params.userInput == "yes") {
+        if (params.userInput === "Yes") {
           return "show_options";
         } else {
           return "quit";
