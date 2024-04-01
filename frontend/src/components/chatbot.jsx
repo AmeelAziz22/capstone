@@ -296,12 +296,12 @@ const AIChatbot = () => {
                 console.log(response);
                 if (response["increase"] === true) {
                   prepCustomMessage(
-                    `The stock ${selectedStock} is expected to increase in value (${response["percent_accuracy"]}% confidence).`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
                     "end"
                   );
                 } else {
                   prepCustomMessage(
-                    `The stock ${selectedStock} is expected to decrease in value (${response["percent_accuracy"]}% confidence).`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
                     "end"
                   );
                 }
@@ -316,12 +316,12 @@ const AIChatbot = () => {
                 console.log(response);
                 if (response["increase"] === true) {
                   prepCustomMessage(
-                    `The stock ${selectedStock} is expected to increase in value (${response["percent_accuracy"]}% confidence).`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
                     "buy_increase"
                   );
                 } else {
                   prepCustomMessage(
-                    `The stock ${selectedStock} is expected to decrease in value (${response["percent_accuracy"]}% confidence).`,
+                    `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
                     "end"
                   );
                 }
