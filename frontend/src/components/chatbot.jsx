@@ -329,7 +329,7 @@ const AIChatbot = () => {
                     `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${
                       response["increase_accuracy"].toFixed(2) * 100
                     }%`,
-                    "end"
+                    "sell_decrease"
                   );
                 }
               })
@@ -346,7 +346,7 @@ const AIChatbot = () => {
                     `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${
                       response["increase_accuracy"].toFixed(2) * 100
                     }%`,
-                    "end"
+                    "buy_increase"
                   );
                 } else {
                   prepCustomMessage(
@@ -482,7 +482,7 @@ const AIChatbot = () => {
                 <tr key={index}>
                   <td>{stock.stock_symbol}</td>
                   <td>{stock.increase ? "Increase" : "Decrease"}</td>
-                  <td>{`${stock.increase_accuracy.toFixed(4) * 100}%`}</td>
+                  <td>{`${Math.round((Math.round(stock.increase_accuracy*100)/100) * 100)}%`}</td>
                 </tr>
               ))}
             </tbody>

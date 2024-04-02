@@ -1,3 +1,7 @@
 html {
   background-color: rgb(31, 41, 55);
 }
+
+#hide-cra-error-overlay-btn {
+  display: none;
+}
