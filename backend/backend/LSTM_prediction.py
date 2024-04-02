@@ -128,12 +128,12 @@ def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
 def main():
     stock_ticker = 'NVDA'
     start_date = '2010-01-01'
-    end_date = '2024-02-27'
+    end_date = '2024-03-31'
     ticker = Ticker(stock_ticker)
     profile = ticker.asset_profile
     sector = profile[stock_ticker]['sector']
     print(sector)
-    day_to_predict = 30
+    day_to_predict = 240
 
     stock_data = fetch_stock_data(stock_ticker, start_date, end_date)
     print(stock_data)
