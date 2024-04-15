@@ -32,7 +32,7 @@ function PortfolioSummary({ userID, summaryData }) {
         // type: "time",
       },
       y: {
-        suggestedMin: 0,
+        // suggestedMin: 0,
       },
     },
   };

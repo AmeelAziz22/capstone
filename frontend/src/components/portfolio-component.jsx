@@ -21,12 +21,17 @@ const Home = () => {
   useDeepCompareEffect(() => {
     const fetchAndSetStocks = () => {
       API.fetchStocks(userID).then(setStocks).catch(console.error);
-      console.log("Fetched stocks: ", stocks);
+      // console.log("Fetched stocks: ", stocks);
     };
 
     const fetchandSetSummaryData = () => {
-      API.portfolioHistory(userID).then(setSummaryData).catch(console.error);
-      console.log("Fetched summary data: ", summaryData);
+      API.portfolioHistory(userID)
+        .then((response) => {
+          // console.log("Response: ", response, "USER ID: ", userID);
+          setSummaryData(response);
+        })
+        .catch(console.error);
+      // console.log("Fetched summary data: ", summaryData);
     };
 
     // get stocks and portfolio history once on page load

@@ -38,7 +38,7 @@ export const StockChart = ({ ticker }) => {
   );
 };
 
-export const StockSummary = ({ stocks, selectStock }) => {
+export const StockSummary = ({ stocks, selectStock, reload }) => {
   const handleSubmit = (event) => {
     event.preventDefault();
     const symbol = event.target[0].value;
@@ -47,21 +47,12 @@ export const StockSummary = ({ stocks, selectStock }) => {
         Cookies.get("user_id"),
         symbol.toUpperCase(),
         event.target.qty.value,
-        100
+        event.target.avgPrice.value
       );
       selectStock(symbol);
+      reload();
     }
   };
-
-  // const [value, setValue] = useState(0);
-  // const handleIncrement = () => {
-  //   setValue(value + 1);
-  // };
-  // const handleDecrement = () => {
-  //   if (value > 0) {
-  //     setValue(value - 1);
-  //   }
-  // };
 
   const rows = [];
 
@@ -83,6 +74,17 @@ export const StockSummary = ({ stocks, selectStock }) => {
           {stock.average_price.toFixed(2)} USD
         </td>
         <td className="p-3 text-center">{stock.price_change.toFixed(2)} %</td>
+        <td className="p-3 text-center">
+          <button
+            className="pl-5 pr-5 pt-2 pb-2 bg-red-900 rounded-md text-white font-bold active:bg-red-700 drop-shadow-lg hover:bg-red-600"
+            onClick={() => {
+              API.updateStock(Cookies.get("user_id"), stock.symbol, 0, 0);
+              reload();
+            }}
+          >
+            Delete
+          </button>
+        </td>
       </tr>
     );
   });
@@ -102,12 +104,6 @@ export const StockSummary = ({ stocks, selectStock }) => {
                     className=" text-white font-bold bg-slate-600 pl-4 rounded-md pt-3 pb-3 ring-blue-700 ring-opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 caret-white drop-shadow-lg uppercase"
                     placeholder="Enter stock symbol"
                   />
-                  {/* <button
-                    onClick={handleDecrement}
-                    className="ml-5 pl-7 pr-7 pt-3 pb-3 bg-blue-900 rounded-md text-white font-bold active:bg-blue-800 drop-shadow-lg"
-                  >
-                    -
-                  </button> */}
                   <input
                     type="text"
                     name="qty"
@@ -115,12 +111,13 @@ export const StockSummary = ({ stocks, selectStock }) => {
                     placeholder="QTY"
                     className="text-white text-center font-bold bg-slate-600 rounded-md w-16 ml-4 pt-3 pb-3 ring-blue-700 ring-opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 caret-white drop-shadow-lg uppercase"
                   />
-                  {/* <button
-                    onClick={handleIncrement}
-                    className="ml-5 pl-7 pr-7 pt-3 pb-3 bg-blue-900 rounded-md text-white font-bold active:bg-blue-800 drop-shadow-lg"
-                  >
-                    +
-                  </button> */}
+                  <input
+                    type="text"
+                    name="avgPrice"
+                    autoComplete="off"
+                    placeholder="AVG PRICE"
+                    className="text-white text-center font-bold bg-slate-600 rounded-md w-24 ml-4 pt-3 pb-3 ring-blue-700 ring-opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 caret-white drop-shadow-lg uppercase"
+                  />
                   <button className="ml-5 pl-7 pr-7 pt-3 pb-3 bg-blue-900 rounded-md text-white font-bold active:bg-blue-800 drop-shadow-lg">
                     Update Stock
                   </button>
@@ -140,6 +137,7 @@ export const StockSummary = ({ stocks, selectStock }) => {
                     <th className="p-3 text-center">Current Price</th>
                     <th className="p-3 text-center">Average Price</th>
                     <th className="p-3 text-center">Price Change</th>
+                    <th className="p-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody>{rows}</tbody>
