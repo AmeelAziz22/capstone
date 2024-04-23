@@ -6,6 +6,7 @@ from django.db.models import Sum
 from backend_app.models import User, Account_Stock, PortfolioHistory, StockPrediction
 from datetime import datetime, timedelta
 import yfinance as yf
+from .combined_models import initialize_db
 
 @csrf_exempt
 def get_data(request):
@@ -305,38 +306,19 @@ def get_stock_predictions(request, stock_symbol, days):
     except StockPrediction.DoesNotExist:
         return JsonResponse({'error': 'Model is not ready for that stock, come back later'}, status=404)
 
-
-def save_or_update_prediction(stock_symbol, time, increase, percent, indicator, increase_accuracy, percent_accuracy):
+@csrf_exempt
+def initialize_stock_predictions(request):
     try:
-        prediction = StockPrediction.objects.get(stock_symbol=stock_symbol, time=time)
-        
-        # Update existing prediction
-        prediction.increase = increase
-        prediction.percent = percent
-        prediction.indicator = indicator
-        prediction.increase_accuracy = increase_accuracy
-        prediction.percent_accuracy = percent_accuracy
-        prediction.save()
-        
-        return f"Prediction for {stock_symbol} at time {time} updated successfully."
+        initialize_db()
 
+
+        return JsonResponse("success", safe=False)
     except StockPrediction.DoesNotExist:
-        # Create a new prediction if it doesn't exist
-        prediction = StockPrediction(
-            stock_symbol=stock_symbol,
-            time=time,
-            increase=increase,
-            percent=percent,
-            indicator=indicator,
-            increase_accuracy=increase_accuracy,
-            percent_accuracy=percent_accuracy
-        )
-        prediction.save()
-        
-        return f"Prediction for {stock_symbol} at time {time} saved successfully."
+        return JsonResponse({'error': 'Model is not ready for that stock, come back later'}, status=404)
 
-    except Exception as e:
-        return f"Error saving or updating prediction: {str(e)}"
+
+
+
     
 # default page
 def home(request):

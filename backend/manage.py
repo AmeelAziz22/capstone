@@ -16,12 +16,12 @@ def main():
             "forget to activate a virtual environment?"
         ) from exc
     
-    dailyProcess = multiprocessing.Process(target=d.main)
-    dailyProcess.start()
+    # dailyProcess = multiprocessing.Process(target=d.main)
+    # dailyProcess.start()
 
     execute_from_command_line(sys.argv)
 
-    dailyProcess.join()
+    # dailyProcess.join()
 
 if __name__ == '__main__':
     main()

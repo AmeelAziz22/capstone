@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from threading import Timer
 import time
-from backend.stock_ml import preprocess_data as ml
+# from backend.stock_ml import preprocess_data as ml
 
 def job():
     ml.main()
