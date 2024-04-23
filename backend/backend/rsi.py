@@ -64,12 +64,27 @@ def macd_advice(macd_data):
     else:
         return "No clear signal: Exercise caution and wait for a clearer signal."
 
+def calculate_volatility(ticker, window=252):
+    data = yf.download(ticker, period='2y')
+    returns = data['Close'].pct_change().dropna()
+    volatility = returns.rolling(window=window).std() * (252 ** 0.5)  # Annualized volatility
+    return volatility.iloc[-1]
+
+def risk_level(volatility):
+    if volatility > 0.2:
+        return "High Risk"
+    elif volatility > 0.1:
+        return "Medium Risk"
+    else:
+        return "Low Risk"
 
 def main():
   print(calculate_rsi('AAPL'))
   print(rsi_advice(calculate_rsi('AAPL')))
   print(calculate_macd('AAPL'))
   print(macd_advice(calculate_macd('AAPL')))
+  print(calculate_volatility('AAPL'))
+  print(risk_level(calculate_volatility('AAPL')))
   
 
 if __name__ == "__main__":
