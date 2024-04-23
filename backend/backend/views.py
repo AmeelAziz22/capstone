@@ -7,6 +7,7 @@ from backend_app.models import User, Account_Stock, PortfolioHistory, StockPredi
 from datetime import datetime, timedelta
 import yfinance as yf
 from .combined_models import initialize_db
+import pandas as pd
 
 @csrf_exempt
 def get_data(request):
@@ -317,9 +318,21 @@ def initialize_stock_predictions(request):
         return JsonResponse({'error': 'Model is not ready for that stock, come back later'}, status=404)
 
 
+def calculate_rsi(ticker, windows=14):
+    data = yf.download(ticker, period='1y')
+    delta = data['Close'].diff()
+    gain = (delta.where(delta > 0, 0)).mean()
+    loss = (-delta.where(delta < 0, 0)).mean()
+    rs = gain / loss
+    rsi = 100 - (100 / (1 + rs))
+    data['RSI'] = rsi
+    
+    return data.tail()
 
 
     
 # default page
 def home(request):
-    return HttpResponse("Welcome to the homepage!")
+    
+    return HttpResponse(calculate_rsi('AAPL'))
+
