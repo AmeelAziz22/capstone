@@ -16,7 +16,7 @@ const AIChatbot = () => {
   const [selectedDateRange, setSelectedDateRange] = React.useState("");
   const [stockElemIndex, setStockElemIndex] = React.useState(0);
   const [dateElemIndex, setDateElemIndex] = React.useState(0);
-  const [allStockPred,setAllStockPred] = React.useState([]);
+  const [allStockPred, setAllStockPred] = React.useState([]);
   const dateRanges = new Map();
   dateRanges.set("2 Weeks", 10);
   dateRanges.set("1 Month", 20);
@@ -297,12 +297,14 @@ const AIChatbot = () => {
                 console.log(response);
                 if (response["increase"] === true) {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["increase_accuracy"]}%`,
                     "end"
                   );
                 } else {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${
+                      response["increase_accuracy"].toFixed(2) * 100
+                    }%`,
                     "end"
                   );
                 }
@@ -317,13 +319,17 @@ const AIChatbot = () => {
                 console.log(response);
                 if (response["increase"] === true) {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${
+                      response["increase_accuracy"].toFixed(2) * 100
+                    }%`,
                     "buy_increase"
                   );
                 } else {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
-                    "end"
+                    `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${
+                      response["increase_accuracy"].toFixed(2) * 100
+                    }%`,
+                    "sell_decrease"
                   );
                 }
               })
@@ -333,42 +339,51 @@ const AIChatbot = () => {
           // SELL STOCKS
           case "Sell Stocks":
             await API.getStockPredictions(selectedDateRange, selectedStock)
-            .then((response) => {
-              console.log(response);
-              if (response["increase"] === true) {
-                prepCustomMessage(
-                  `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
-                  "end"
-                );
-              } else {
-                prepCustomMessage(
-                  `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${response["percent_accuracy"]}%`,
-                  "sell_decrease"
-                );
-              }
-            })
-            .catch(console.error);
-          return "custom_message";
+              .then((response) => {
+                console.log(response);
+                if (response["increase"] === true) {
+                  prepCustomMessage(
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${
+                      response["increase_accuracy"].toFixed(2) * 100
+                    }%`,
+                    "buy_increase"
+                  );
+                } else {
+                  prepCustomMessage(
+                    `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${
+                      response["increase_accuracy"].toFixed(2) * 100
+                    }%`,
+                    "sell_decrease"
+                  );
+                }
+              })
+              .catch(console.error);
+            return "custom_message";
 
           // ANALYZE PORTFOLIO
           case "Analyze Portfolio":
-            let response = await API.fetchStocks(userID)
-            const stocks = response.map(stock => stock.symbol);
-            response = await API.getMultipleStockPredictions(selectedDateRange, stocks)
+            let response = await API.fetchStocks(userID);
+            const stocks = response.map((stock) => stock.symbol);
+            response = await API.getMultipleStockPredictions(
+              selectedDateRange,
+              stocks
+            );
             setAllStockPred(Object.values(response));
-            const increaseValues = Object.values(response).map(data => data.increase);
-  
-            if (increaseValues.some(val => val === undefined)) {
+            const increaseValues = Object.values(response).map(
+              (data) => data.increase
+            );
+
+            if (increaseValues.some((val) => val === undefined)) {
               prepCustomMessage(
                 "We dont have all the stock in your portfolio ready for analysis, come back later",
                 "end"
               );
-            } else if (increaseValues.every(val => val === true)) {
+            } else if (increaseValues.every((val) => val === true)) {
               prepCustomMessage(
                 `Based on our models we expect your portfolio to increase by the next ${selectedDateRange} days`,
                 "portfolio_options"
               );
-            } else if (increaseValues.every(val => val === false)) {
+            } else if (increaseValues.every((val) => val === false)) {
               prepCustomMessage(
                 `Based on our models we expect your portfolio to decrease by the next ${selectedDateRange} days`,
                 "portfolio_options"
@@ -380,7 +395,6 @@ const AIChatbot = () => {
               );
             }
             return "custom_message";
-
 
           // STOCK INDICATOR
           case "Stock Indicator":
@@ -444,7 +458,7 @@ const AIChatbot = () => {
       options: ["Show stock predictions", "No, I'm good"],
       path: (params) => {
         if (params.userInput === "Show stock predictions") {
-          console.log(allStockPred)
+          console.log(allStockPred);
           return "stock_predictions";
         } else {
           return "end";
@@ -452,30 +466,31 @@ const AIChatbot = () => {
       },
     },
     stock_predictions: {
-      render:  
-      <div className="flex flex-col align-middle justify-center">
-      <h2 className="text-white text-center">Stock Predictions</h2>
-      <table className="mx-8 text-gray-400 border-separate space-y-6 text-sm border-spacing-15 rounded-sm drop-shadow-lg">
-        <thead className=" bg-blue-900 text-gray-200">
-          <tr>
-            <th className="p-3">Symbol</th>
-            <th className="p-3 text-center">Prediction</th>
-            <th className="p-3 text-center">% Accuracy</th>
-          </tr>
-        </thead>
-        <tbody>
-          {allStockPred.map((stock, index) => (
-            <tr key={index}>
-              <td>{stock.stock_symbol}</td>
-              <td>{stock.increase ? 'Increase' : 'Decrease'}</td>
-              <td>{stock.percent_accuracy}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>,
+      render: (
+        <div className="flex flex-col align-middle justify-center">
+          <h2 className="text-white text-center">Stock Predictions</h2>
+          <table className="mx-8 text-gray-400 border-separate space-y-6 text-sm border-spacing-15 rounded-sm drop-shadow-lg">
+            <thead className=" bg-blue-900 text-gray-200">
+              <tr>
+                <th className="p-3">Symbol</th>
+                <th className="p-3 text-center">Prediction</th>
+                <th className="p-3 text-center">% Accuracy</th>
+              </tr>
+            </thead>
+            <tbody>
+              {allStockPred.map((stock, index) => (
+                <tr key={index}>
+                  <td>{stock.stock_symbol}</td>
+                  <td>{stock.increase ? "Increase" : "Decrease"}</td>
+                  <td>{`${Math.round((Math.round(stock.increase_accuracy*100)/100) * 100)}%`}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ),
       transition: { duration: 1000 },
-      path: 'end'
+      path: "end",
     },
     custom_message: {
       message: () => {

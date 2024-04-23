@@ -25,7 +25,12 @@ const Home = () => {
     };
 
     const fetchandSetSummaryData = () => {
-      API.portfolioHistory(userID).then(setSummaryData).catch(console.error);
+      API.portfolioHistory(userID)
+        .then((response) => {
+          // console.log("Response: ", response, "USER ID: ", userID);
+          setSummaryData(response);
+        })
+        .catch(console.error);
       // console.log("Fetched summary data: ", summaryData);
     };
 
