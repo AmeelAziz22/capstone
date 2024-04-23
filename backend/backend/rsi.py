@@ -1,6 +1,6 @@
 import yfinance as yf
 import pandas as pd       
-
+import numpy as np
 
 def calculate_rsi(ticker, window=14):
     data = yf.download(ticker, period='1y')
@@ -77,6 +77,47 @@ def risk_level(volatility):
         return "Medium Risk"
     else:
         return "Low Risk"
+    
+def calculate_portfolio_volatility(tickers, shares, window=252):
+    # Calculate the volatility of each stock
+    stock_volatilities = [calculate_volatility(ticker, window) for ticker in tickers]
+    
+    # Convert shares to numpy array
+    shares_array = np.array(shares)
+    
+    # Calculate the weights of each stock in the portfolio
+    weights = shares_array / np.sum(shares_array)
+    
+    # Calculate the contribution of each stock to portfolio volatility
+    stock_contributions = np.sqrt(weights) * np.array(stock_volatilities)
+    
+    # Calculate portfolio volatility
+    portfolio_volatility = np.sqrt(np.sum(stock_contributions ** 2))
+    
+    return portfolio_volatility
+
+# def get_pe_ratio(ticker):
+#     # Fetch company information
+#     income_statement = yf.Ticker(ticker).financials
+
+#     print(income_statement.columns)
+
+#     # Get the latest trailing twelve months (TTM) net income
+#     net_income = income_statement['Net Income'].iloc[-1]
+
+#     # Fetch historical data for the stock price
+#     stock_data = yf.download(ticker, period='1d')
+
+#     # Get the latest closing price
+#     current_price = stock_data['Close'].iloc[-1]
+
+#     # Calculate the trailing twelve months (TTM) earnings per share (EPS)
+#     ttm_eps = net_income / len(stock_data)
+
+#     # Calculate the price-to-earnings (P/E) ratio
+#     pe_ratio = current_price / ttm_eps
+
+#     return pe_ratio
 
 def main():
   print(calculate_rsi('AAPL'))
@@ -85,6 +126,10 @@ def main():
   print(macd_advice(calculate_macd('AAPL')))
   print(calculate_volatility('AAPL'))
   print(risk_level(calculate_volatility('AAPL')))
+  tickers = ['AAPL', 'GOOGL', 'MSFT']  # List of stock tickers
+  shares = [100, 200, 150]
+  print(calculate_portfolio_volatility(tickers,shares))
+  print(get_pe_ratio('AAPL'))
   
 
 if __name__ == "__main__":
