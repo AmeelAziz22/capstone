@@ -12,6 +12,14 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
+
+# Load production settings if DJANGO_SETTINGS_MODULE is set to 'myproject.production'
+if os.environ.get('DJANGO_SETTINGS_MODULE') == 'backend.production':
+    # Load production-specific settings
+    from .production import *
+# else:
+#     # Load default development settings
+#     from .development import *
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,9 +31,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-&%u)tjohwly98h0%e0=_dze0iw31bpwq11ljp%xu$r)r%b*zho'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','*.herokuapp.com']
+
 
 
 # Application definition
