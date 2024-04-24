@@ -1,3 +1,9 @@
+const CryptoJS = require('crypto-js');
+
+function hashPassword(password) {
+  return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
+}
+
 class API {
   static async fetchData(url, method, body) {
     try {
@@ -18,19 +24,22 @@ class API {
 
   static async register(first_name, last_name, username, password) {
     const url = `http://127.0.0.1:8000/register/`;
+    const hashedPassword = hashPassword(password)
+
     return this.fetchData(url, "POST", {
       first_name: first_name,
       last_name: last_name,
       username: username,
-      password: password,
+      password: hashedPassword,
     });
   }
 
   static async token(username, password) {
+    const hashedPassword = hashPassword(password)
     const url = `http://127.0.0.1:8000/token/`;
     return this.fetchData(url, "POST", {
       username: username,
-      password: password,
+      password: hashedPassword,
     });
   }
 
