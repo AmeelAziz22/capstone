@@ -12,6 +12,7 @@ import Explore from './routes/explore';
 import Portfolio from './routes/portfolio-page';
 import ErrorPage from './error-page';
 import NewsPage from './routes/news-page';
+import FaqPage from './routes/faq-page';
 
 
 let dev = false;
@@ -40,6 +41,11 @@ const router = createBrowserRouter([
   {
     path: '/news',
     element: <NewsPage />,
+    errorElement: <ErrorPage />
+  },
+  {
+    path: '/faq',
+    element: <FaqPage />,
     errorElement: <ErrorPage />
   },
   {
