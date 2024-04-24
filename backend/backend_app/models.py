@@ -1,7 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import DateTimeField, FloatField
-
+from django.utils import timezone
 
 class MyModel(models.Model):
     name = models.CharField(max_length=100)
@@ -59,6 +59,8 @@ class StockPrediction(models.Model):
     indicator = models.CharField(max_length=100)
     increase_accuracy = models.FloatField()
     percent_accuracy = models.FloatField()
+    peak = models.DateField()
+    last_update= models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f'{self.stock_symbol} - {self.time}'
