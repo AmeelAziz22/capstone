@@ -34,5 +34,6 @@ urlpatterns = [
     path('user/<int:userID>/generate_portfolio/', views.generate_portfolio, name='generate_portfolio'),
     path('api/model/<str:stock_symbol>/prediction/<int:days>/', views.get_stock_predictions, name='get_stock_predictions'),
     path('api/model/initialize', views.initialize_stock_predictions, name='initialize_stock_predictions'),
-
+    path('api/metrics/<str:stock_symbol>/<str:option>/', views.get_metrics, name='get_metrics'),
+    path('api/portfolio/metrics/volatility/<str:userID>/', views.get_portfolio_volatility, name='get_portfolio_volitility')
 ]

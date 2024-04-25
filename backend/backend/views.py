@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import yfinance as yf
 from .combined_models import initialize_db
 import pandas as pd
+from .rsi import calculate_macd,calculate_portfolio_volatility,calculate_rsi,calculate_volatility,risk_level,rsi_advice,macd_advice
 
 @csrf_exempt
 def get_data(request):
@@ -321,17 +322,48 @@ def initialize_stock_predictions(request):
         return JsonResponse({'error': 'Model is not ready for that stock, come back later'}, status=404)
 
 
-def calculate_rsi(ticker, windows=14):
-    data = yf.download(ticker, period='1y')
-    delta = data['Close'].diff()
-    gain = (delta.where(delta > 0, 0)).mean()
-    loss = (-delta.where(delta < 0, 0)).mean()
-    rs = gain / loss
-    rsi = 100 - (100 / (1 + rs))
-    data['RSI'] = rsi
-    
-    return data.tail()
+def get_metrics(request,stock_symbol,option):
+    option = option.lower()
 
+    # Define logic for each option
+    if option == 'rsi':
+        rsi_val = calculate_rsi(stock_symbol)
+        advice = rsi_advice(rsi_val)
+        return JsonResponse({'rsi_value': rsi_val,'advice':advice})
+    elif option == 'macd':
+        macd_data = calculate_macd(stock_symbol)
+        advice = macd_advice(macd_data)
+        macd_data = pd.DataFrame(macd_data).to_dict(orient='records')
+
+        return JsonResponse({'macd_data': macd_data,'advice':advice})
+    elif option == 'volatility':
+        vol = calculate_volatility(stock_symbol)
+        advice = risk_level(vol)
+        return JsonResponse({'volitility': vol,'advice':advice})
+
+    else:
+        return JsonResponse({'error': 'Invalid option'})
+
+
+def get_portfolio_volatility(request,userID):
+    try:
+        user = User.objects.get(userID=userID)
+        stocks = Account_Stock.objects.filter(user=user)
+
+        symbols = []
+        shares = []
+
+        # Extract data from queryset and populate arrays
+        for stock in stocks:
+            symbols.append(stock.stock_symbol)
+            shares.append(stock.shares)
+
+        vol = calculate_portfolio_volatility(symbols,shares)
+        advice = risk_level(vol)
+
+        return JsonResponse({'volatility': vol,'advice':advice})
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'User not found'}, status=404)
 
     
 # default page
