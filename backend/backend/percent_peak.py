@@ -201,6 +201,23 @@ def create_percent_peak_predictions(stock_ticker, start_date, end_date, day_to_p
 
     dates_list = [timestamp.strftime('%Y-%m-%d') for timestamp in dates_list]
 
+    df = pd.DataFrame({'Date': dates_list})
+
+    # Convert the 'Date' column to datetime objects
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    # Add business days to each date
+    df['Date'] = df['Date'] + pd.offsets.BDay(day_to_predict)
+
+    # Convert the result back to a list of datetime objects
+    dates_list = df['Date'].tolist()
+
+    # Convert datetime objects back to strings in 'YYYY-MM-DD' format
+    dates_list = [timestamp.strftime('%Y-%m-%d') for timestamp in dates_list]
+
+
+    
+
 
 
     if len(predicted_stock_targets) > 0:
@@ -252,7 +269,7 @@ def create_percent_peak_predictions(stock_ticker, start_date, end_date, day_to_p
 
 
 def main():
-    create_percent_peak_predictions(0,"AAPL", '2010-01-01','2024-02-27',10)
+    create_percent_peak_predictions("AAPL", '2010-01-01','2024-04-24',10)
 
 if __name__ == "__main__":
     main()
