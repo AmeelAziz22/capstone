@@ -59,7 +59,8 @@ class StockPrediction(models.Model):
     indicator = models.CharField(max_length=100)
     increase_accuracy = models.FloatField()
     percent_accuracy = models.FloatField()
-    peak = models.DateField()
+    peak_high= models.DateField()
+    peak_min= models.DateField()
     last_update= models.DateTimeField(default=timezone.now)
 
     def __str__(self):
