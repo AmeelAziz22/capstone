@@ -10,14 +10,15 @@ from keras.layers import Dense, LSTM, Dropout
 from sklearn.metrics import accuracy_score, classification_report
 from keras.utils import to_categorical
 import keras.backend as K
+from sklearn.metrics import mean_squared_error, r2_score
 
-def r_squared(y_true, y_pred):
-    SS_res =  K.sum(K.square(y_true - y_pred)) 
-    SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
-    return 1 - SS_res/(SS_tot + K.epsilon())
+# def r_squared(y_true, y_pred):
+#     SS_res =  K.sum(K.square(y_true - y_pred)) 
+#     SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
+#     return 1 - SS_res/(SS_tot + K.epsilon())
 
-def standard_deviation(y_true, y_pred):
-    return K.std(y_pred)
+# def standard_deviation(y_true, y_pred):
+#     return K.std(y_pred)
 
 
 
@@ -54,48 +55,36 @@ def fetch_stock_data(ticker, start_date, end_date):
     print(stock_data)
     return stock_data
 
-def add_target_column(data,future_days):
-    # Shift the 'Close' price 30 days into the future
+def add_target_column(data, future_days):
+    # Shift the 'Close' price future_days into the future
     data['Future_Close'] = data['Close'].shift(future_days)
 
+    data_with_na = data[data['Future_Close'].isna()]
+
+    # Calculate the percent change
     data['Percent_Change'] = ((data['Future_Close'] - data['Close']) / data['Close']) * 100
 
-    num_thresholds = 4
+    # Set the target column as the percent change
+    data['Target'] = data['Percent_Change']
 
-    min_change = data['Percent_Change'].min()
-    max_change = data['Percent_Change'].max()
-    
-    # Determine the range covered by the minimum and maximum values
-    range_min = int(min_change // 10 * 10 - 10)
-    range_max = int(max_change // 10 * 10 + 10)
-    
-    # Define thresholds based on the range
-    thresholds = [i for i in range(range_min, range_max + 10, 10)]
+    # data['Increase'] = (data['Percent_Change'] > 0).astype(int)
 
-
-    labels = [f'{thresholds[i]} to {thresholds[i+1]}' for i in range(len(thresholds) - 1)]
-    
-
-    label_encoder = LabelEncoder()
-    data['Target'] = label_encoder.fit_transform(pd.cut(data['Percent_Change'], bins=thresholds, labels=labels))
-
-
-    # Calculate the difference between the future close and today's close
-    
     # Drop rows with NaN values that result from the shift operation
     data.dropna(inplace=True)
-    # Drop 'Price_Change' and 'Future_Close' columns
-    data.drop(['Percent_Change', 'Future_Close'], axis=1, inplace=True)
-    # Move 'Target' column to the last position
-    columns = list(data.columns)
-    columns.remove('Target')
-    columns.append('Target')
-    data = data[columns]
+
     print(data)
-    return data, label_encoder
+
+    print(data.columns)
+
+    data.drop(['Future_Close', 'Percent_Change'], axis=1, inplace=True)
+
+    # Select only the necessary columns
+
+    return data, data_with_na
 
     
 def split_train_test_data(data, test_days):
+    print(data.columns)
     test_data = data.tail(test_days)  # Take the last 'test_days' days of data
     train_data = data.iloc[:-test_days]  # Exclude the last 'test_days' days for training
     return train_data, test_data
@@ -134,7 +123,12 @@ def create_dataset(dataset, close_index, time_step=1):
 
 
 
-def create_model(X_train, y_train, num_classes, epochs_chosen, batch_size_chosen):
+# def r_squared(y_true, y_pred):
+#     SS_res =  K.sum(K.square(y_true - y_pred)) 
+#     SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
+#     return ( 1 - SS_res/(SS_tot + K.epsilon()) )
+
+def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
     model = Sequential()
     print("Shape of X_train:", X_train.shape)
     X_train_reshaped = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
@@ -142,38 +136,34 @@ def create_model(X_train, y_train, num_classes, epochs_chosen, batch_size_chosen
     model.add(LSTM(units=20, input_shape=(X_train_reshaped.shape[1], X_train_reshaped.shape[2])))
 
     model.add(Dropout(0.2))
-    model.add(Dense(units=num_classes, activation='softmax'))  # Adjust for multi-class classification
+    model.add(Dense(units=1, activation='linear'))  # Adjust for regression
 
-    model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
+    model.compile(optimizer='adam', loss='mean_squared_error')
 
-    y_train_encoded = to_categorical(y_train, num_classes=num_classes)  # Encode target to categorical
+    model.fit(X_train, y_train, epochs=epochs_chosen, batch_size=batch_size_chosen)
 
-    history = model.fit(X_train, y_train_encoded, epochs=epochs_chosen, batch_size=batch_size_chosen)
-
-    highest_accuracy = max(history.history['accuracy'])
-
-    return model, highest_accuracy
+    return model
 
 
 
-def create_percent_predictions(stock_ticker, start_date, end_date, day_to_predict):
-    # stock_ticker = 'JPM'
+def create_percent_peak_predictions(stock_ticker, start_date, end_date, day_to_predict):
+    # stock_ticker = 'NVDA'
     # start_date = '2010-01-01'
-    # end_date = '2024-02-27'
+    # end_date = '2024-04-23'
     ticker = Ticker(stock_ticker)
     profile = ticker.asset_profile
     sector = profile[stock_ticker]['sector']
-    print(sector)
-    # day_to_predict = 465
+    # print(sector)
+    # day_to_predict = 240
 
     stock_data = fetch_stock_data(stock_ticker, start_date, end_date)
-    stock_data, l = add_target_column(stock_data,-day_to_predict)
+    stock_data, future_data = add_target_column(stock_data,-day_to_predict)
 
 
 
-    train_data, test_data = split_train_test_data(stock_data, test_days=90)
-    print(test_data)
-    print("_+_+_+_+__+_+_+_+_+_+")
+    # train_data, test_data = split_train_test_data(stock_data, test_days=90)
+    # print(test_data)
+    # print("_+_+_+_+__+_+_+_+_+_+")
     # print("Train Data Date Range:", train_data.index.min().date(), "to", train_data.index.max().date())
     # print("Test Data Date Range:", test_data.index.min().date(), "to", test_data.index.max().date())
 
@@ -182,7 +172,7 @@ def create_percent_predictions(stock_ticker, start_date, end_date, day_to_predic
 
     
     time_step = 20
-    sc, features_scaled, target = reshape_training_data(train_data)
+    sc, features_scaled, target = reshape_training_data(stock_data)
     # X_train, y_train = create_dataset(train_data_scaled,3, time_step)
     # print(features_scaled.shape)
     # print(target)
@@ -194,28 +184,80 @@ def create_percent_predictions(stock_ticker, start_date, end_date, day_to_predic
     # Creating a data structure with 60 time-steps and 1 output
     
     
-    model, accuracy = create_model(features_scaled, target.values, len(train_data['Target'].unique()), 100, 32)
+    model = create_model(features_scaled, target.values, 100, 32)
 
-    features_test = test_data.iloc[:, :-1]
-    test_data_scaled = sc.transform(features_test)
+    # features_test = test_data.iloc[:, :-1]
+    # test_data_scaled = sc.transform(features_test)
+
+    feature_test = future_data.iloc[:,:-1]
+    test_data_scaled = sc.transform(feature_test)
 
     predicted_stock_targets = model.predict(test_data_scaled)
-    predicted_labels = predicted_stock_targets.argmax(axis=1)  # Retrieve class with highest probability
+    predicted_labels = predicted_stock_targets # Retrieve class with highest probability
 
-    decoded_labels = l.inverse_transform(predicted_labels)
-    print(decoded_labels)
-    if accuracy < .35:
-        accuracy = accuracy + .25
-    print(accuracy)
+    dates_list = feature_test.index.tolist()
+    print(predicted_stock_targets)
+    print(dates_list)
+
+    dates_list = [timestamp.strftime('%Y-%m-%d') for timestamp in dates_list]
+
+    df = pd.DataFrame({'Date': dates_list})
+
+    # Convert the 'Date' column to datetime objects
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    # Add business days to each date
+    df['Date'] = df['Date'] + pd.offsets.BDay(day_to_predict)
+
+    # Convert the result back to a list of datetime objects
+    dates_list = df['Date'].tolist()
+
+    # Convert datetime objects back to strings in 'YYYY-MM-DD' format
+    dates_list = [timestamp.strftime('%Y-%m-%d') for timestamp in dates_list]
+
+
+    
+
+
+
+    if len(predicted_stock_targets) > 0:
+        min_index = np.argmin(predicted_stock_targets)
+        max_index = np.argmax(predicted_stock_targets)
+        min_value = predicted_stock_targets[min_index]
+        max_value = predicted_stock_targets[max_index]
+        min_date = dates_list[min_index]
+        max_date = dates_list[max_index]
+        print("Min Date:", min_date, "Min Value:", min_value)
+        print("Max Date:", max_date, "Max Value:", max_value)
+
+        
+
+    else:
+        print("predicted_stock_targets is empty")
+
+        print(max_date)
+        print(min_date)
+
+    return max_date, min_date
+
+
+
     # actual_labels = test_data['Target'].values
 
-    # accuracy = accuracy_score(actual_labels, predicted_labels)
-    # print("Accuracy:", accuracy)
+    # mse = mean_squared_error(actual_labels, predicted_labels)
+    # print("Mean Squared Error (MSE):", mse)
 
-    # classification_rep = classification_report(actual_labels, predicted_labels)
-    # print("Classification Report:\n", classification_rep)
+    # # Calculate R-squared (R^2)
+    # r2 = r2_score(actual_labels, predicted_labels)
+    # print("R-squared (R^2):", r2)
 
-    # Plotting
+    # print(predicted_labels)
+
+
+    # # classification_rep = classification_report(actual_labels, predicted_labels)
+    # # print("Classification Report:\n", classification_rep)
+
+    # # Plotting
     # plt.plot(test_data.index, predicted_labels, color='red', label='Predicted Labels')
     # plt.plot(test_data.index, test_data['Target'], color='green', label='Actual Labels')
     # plt.title('Multi-Class Classification Predictions')
@@ -223,12 +265,11 @@ def create_percent_predictions(stock_ticker, start_date, end_date, day_to_predic
     # plt.ylabel('Label')
     # plt.legend()
     # plt.show()
-    return decoded_labels[-1], accuracy
+
 
 
 def main():
-    create_percent_predictions("AAPL", '2010-01-01','2024-02-27',10)
-
+    create_percent_peak_predictions("AAPL", '2010-01-01','2024-04-24',10)
 
 if __name__ == "__main__":
     main()
