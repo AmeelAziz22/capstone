@@ -300,7 +300,10 @@ def get_stock_predictions(request, stock_symbol, days):
             'high_percent': prediction.high_percent,
             'indicator': prediction.indicator,
             'increase_accuracy': prediction.increase_accuracy,
-            'percent_accuracy': prediction.percent_accuracy
+            'percent_accuracy': prediction.percent_accuracy,
+            'peak_high': prediction.peak_high,
+            'peak_min':prediction.peak_min,
+            'last_update':prediction.last_update
         }
 
         return JsonResponse(data, safe=False)
