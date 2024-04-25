@@ -34,9 +34,9 @@ def fetch_stock_data(ticker, start_date, end_date):
 
         stock_data = pd.merge(stock_data, sector_stock, how='left', left_index=True, right_index=True)
     
-    economy_indicator_data = yf.download('VTI', start=start_date, end=end_date)[['Close']].dropna()
-    economy_indicator_data.columns = [f"{'VTI'}_Close"]
-    stock_data = pd.merge(stock_data, economy_indicator_data, how='left', left_index=True, right_index=True)
+    # economy_indicator_data = yf.download('VTI', start=start_date, end=end_date)[['Close']].dropna()
+    # economy_indicator_data.columns = [f"{'VTI'}_Close"]
+    # stock_data = pd.merge(stock_data, economy_indicator_data, how='left', left_index=True, right_index=True)
 
     print(stock_data)
     return stock_data

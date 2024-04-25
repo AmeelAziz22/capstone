@@ -20,12 +20,12 @@ def start_server():
 
 def main():
     """Run administrative tasks."""
-    # Create a multiprocessing Process for running the server
-    server_process = multiprocessing.Process(target=start_server)
-    server_process.start()
-
     # Call daily's main function
     d.main()
 
 if __name__ == '__main__':
-    main()
+    # Check if the argument is "runserver", then start the server
+    if 'runserver' in sys.argv:
+        start_server()
+    else:
+        main()

@@ -7,11 +7,16 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense, LSTM, Dropout
 from sklearn.metrics import accuracy_score
-
+from ta.momentum import RSIIndicator
+from keras.optimizers import Adam
 
 def fetch_stock_data(ticker, start_date, end_date):
     stock_data = yf.download(ticker, start=start_date, end=end_date)
     stock_data = stock_data.dropna()
+
+    rsi_indicator = RSIIndicator(close=stock_data['Close'], window=14)
+    stock_data['RSI'] = rsi_indicator.rsi()
+
     ticker_stock = Ticker(ticker)
     profile = ticker_stock.asset_profile
     sector = profile[ticker]['sector']
@@ -69,6 +74,7 @@ def split_train_test_data(data, test_days):
 
 def reshape_training_data(train_data):
     # Assuming 'Target' is the last column, extract all columns except the last as features
+    train_data = train_data[::-1]
     features = train_data.iloc[:, :-1]
     target = train_data.iloc[:, -1]  # The 'Target' column
     
@@ -100,19 +106,30 @@ def create_dataset(dataset, close_index, time_step=1):
 
 
 
+
+
 def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
-    
     model = Sequential()
     print("Shape of X_train:", X_train.shape)
     X_train_reshaped = X_train.reshape(X_train.shape[0], X_train.shape[1], 1)
 
-    model.add(LSTM(units=20, input_shape=(X_train_reshaped.shape[1], X_train_reshaped.shape[2])))
-
+    # Add LSTM layers
+    model.add(LSTM(units=50, return_sequences=True, input_shape=(X_train_reshaped.shape[1], X_train_reshaped.shape[2])))
     model.add(Dropout(0.2))
-    model.add(Dense(units=1, activation='sigmoid'))  # Change for binary classification
 
+    model.add(LSTM(units=50, return_sequences=True))
+    model.add(Dropout(0.2))
+
+    model.add(LSTM(units=50))
+    model.add(Dropout(0.2))
+
+    # Add a dense layer for classification
+    model.add(Dense(units=1, activation='sigmoid'))
+
+    # Compile the model
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     
+    # Train the model
     model.fit(X_train, y_train, epochs=epochs_chosen, batch_size=batch_size_chosen)
 
     return model
@@ -122,12 +139,12 @@ def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
 def main():
     stock_ticker = 'NVDA'
     start_date = '2010-01-01'
-    end_date = '2024-04-01'
+    end_date = '2024-04-24'
     ticker = Ticker(stock_ticker)
     profile = ticker.asset_profile
     sector = profile[stock_ticker]['sector']
     print(sector)
-    day_to_predict = 240
+    day_to_predict = 10
 
     stock_data = fetch_stock_data(stock_ticker, start_date, end_date)
     stock_data = add_target_column(stock_data,-day_to_predict)
@@ -157,7 +174,7 @@ def main():
     # Creating a data structure with 60 time-steps and 1 output
     
     
-    model = create_model(features_scaled, target.values, 100, 32)
+    model = create_model(features_scaled, target.values, 100, 16)
 
     features_test = test_data.iloc[:, :-1]
     print(features_test)

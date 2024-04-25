@@ -6,7 +6,7 @@ from django.db.models import Sum
 from backend_app.models import User, Account_Stock, PortfolioHistory, StockPrediction
 from datetime import datetime, timedelta
 import yfinance as yf
-from .combined_models import initialize_db
+from .combined_models import initialize_db, model_input
 import pandas as pd
 from .rsi import calculate_macd,calculate_portfolio_volatility,calculate_rsi,calculate_volatility,risk_level,rsi_advice,macd_advice
 
@@ -301,13 +301,27 @@ def get_stock_predictions(request, stock_symbol, days):
             'high_percent': prediction.high_percent,
             'indicator': prediction.indicator,
             'increase_accuracy': prediction.increase_accuracy,
-            'percent_accuracy': prediction.percent_accuracy
+            'percent_accuracy': prediction.percent_accuracy,
+            'peak_high': prediction.peak_high,
+            'peak_min':prediction.peak_min,
+            'last_update':prediction.last_update
         }
+        last_update = prediction.last_update
+
+        # Get the current datetime
+        current_time = datetime.now(last_update.tzinfo)
+
+        # Calculate the time difference between current time and last update
+        time_difference = current_time - last_update
+
+        if time_difference <= timedelta(hours=24):
+            model_input(stock_symbol,'2010-01-01',days)
 
         return JsonResponse(data, safe=False)
     except StockPrediction.DoesNotExist:
+        model_input(stock_symbol, '2010-01-01',days)
         return JsonResponse({'error': 'Model is not ready for that stock, come back later'}, status=404)
-
+    
 @csrf_exempt
 def initialize_stock_predictions(request):
     try:
