@@ -12,7 +12,7 @@ def repeater():
     y = x.replace(day=x.day, hour=3, minute=0, second=0, microsecond=0) #+ timedelta(days=1)
     delta_t=y-x
     secs=delta_t.seconds+1
-    print(secs)
+    print("Time to run: ", secs)
     time.sleep(secs)
     job()
 
