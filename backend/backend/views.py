@@ -309,7 +309,7 @@ def get_stock_predictions(request, stock_symbol, days):
         last_update = prediction.last_update
 
         # Get the current datetime
-        current_time = datetime.now()
+        current_time = datetime.now(last_update.tzinfo)
 
         # Calculate the time difference between current time and last update
         time_difference = current_time - last_update
