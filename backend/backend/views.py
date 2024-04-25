@@ -314,7 +314,7 @@ def get_stock_predictions(request, stock_symbol, days):
         # Calculate the time difference between current time and last update
         time_difference = current_time - last_update
 
-        if time_difference <= timedelta(hours=24):
+        if time_difference >= timedelta(hours=48):
             model_input(stock_symbol,'2010-01-01',days)
 
         return JsonResponse(data, safe=False)
