@@ -50,12 +50,12 @@ const Home = () => {
       <div className="flex flex-grow flex-col p-8 ml-60">
         <h1 className="pb-8 text-white font-bold text-4xl">Portfolio</h1>
         <div className="flex flex-row justify-center items-center">
-          <PortfolioSummary summaryData={summaryData} />
-          <br />
           <SymbolOverview selectedStock={selectedStock} />
           <br />
+          <PortfolioSummary summaryData={summaryData} />
+          <br />
         </div>
-        <div className="flex flex-row justify-center items-center">
+        <div className="flex flex-row justify-left items-center ml-24">
           <StockSummary stocks={stocks} selectStock={selectStock} />
           <br />
         </div>
