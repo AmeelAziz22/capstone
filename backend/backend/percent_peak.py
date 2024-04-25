@@ -12,13 +12,13 @@ from keras.utils import to_categorical
 import keras.backend as K
 from sklearn.metrics import mean_squared_error, r2_score
 
-def r_squared(y_true, y_pred):
-    SS_res =  K.sum(K.square(y_true - y_pred)) 
-    SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
-    return 1 - SS_res/(SS_tot + K.epsilon())
+# def r_squared(y_true, y_pred):
+#     SS_res =  K.sum(K.square(y_true - y_pred)) 
+#     SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
+#     return 1 - SS_res/(SS_tot + K.epsilon())
 
-def standard_deviation(y_true, y_pred):
-    return K.std(y_pred)
+# def standard_deviation(y_true, y_pred):
+#     return K.std(y_pred)
 
 
 
@@ -123,10 +123,10 @@ def create_dataset(dataset, close_index, time_step=1):
 
 
 
-def r_squared(y_true, y_pred):
-    SS_res =  K.sum(K.square(y_true - y_pred)) 
-    SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
-    return ( 1 - SS_res/(SS_tot + K.epsilon()) )
+# def r_squared(y_true, y_pred):
+#     SS_res =  K.sum(K.square(y_true - y_pred)) 
+#     SS_tot = K.sum(K.square(y_true - K.mean(y_true))) 
+#     return ( 1 - SS_res/(SS_tot + K.epsilon()) )
 
 def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
     model = Sequential()
@@ -138,7 +138,7 @@ def create_model(X_train, y_train, epochs_chosen, batch_size_chosen):
     model.add(Dropout(0.2))
     model.add(Dense(units=1, activation='linear'))  # Adjust for regression
 
-    model.compile(optimizer='adam', loss='mean_squared_error', metrics=[r_squared])
+    model.compile(optimizer='adam', loss='mean_squared_error')
 
     model.fit(X_train, y_train, epochs=epochs_chosen, batch_size=batch_size_chosen)
 
