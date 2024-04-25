@@ -59,6 +59,38 @@ const AIChatbot = () => {
     });
   };
 
+  const confirmStockPick2 = () => {
+    console.log(
+      document.querySelector(
+        `#stock-dropdown-${stockElemIndex} > div > div > div`
+      ).innerHTML
+    );
+    setSelectedStock(
+      document.querySelector(
+        `#stock-dropdown-${stockElemIndex} > div > div > div`
+      ).innerHTML
+    );
+    document.querySelector(`#confirm-stock-btn-${stockElemIndex}`).innerHTML =
+      document.querySelector(
+        `#stock-dropdown-${stockElemIndex} > div > div > div`
+      ).innerHTML;
+    document.querySelector(
+      `#confirm-stock-btn-${stockElemIndex}`
+    ).disabled = true;
+    document
+      .querySelector(`#confirmStockWrapper-${stockElemIndex}`)
+      .classList.add("justify-end");
+
+    //disable dropdown selector
+    document
+      .querySelector(`#stock-dropdown-${stockElemIndex}`)
+      .classList.add("hidden");
+    setPaths((prev) => {
+      // console.log("Path: ", ...prev);
+      return [...prev, "process_metrics"];
+    });
+  };
+
   const confirmDatePick = () => {
     setSelectedDateRange(
       dateRanges.get(
@@ -95,6 +127,16 @@ const AIChatbot = () => {
     setNextPath(() => {
       return nextPath;
     });
+  };
+
+  const parseVolatility = (volatility) => {
+    if (volatility.advice === "High Risk") {
+      return "high risk. This is better for a short term plan of 0-5 years.";
+    } else if (volatility.advice === "Low Risk") {
+      return "low risk. This is better for a long term plan of 10+ years.";
+    } else {
+      return "moderate risk. This is better for a medium term plan of 5-10 years.";
+    }
   };
 
   const options = {
@@ -163,6 +205,7 @@ const AIChatbot = () => {
     show_options: {
       message: "How can I help you?",
       options: [
+        "Show Stock Metrics",
         "Analyze Stocks",
         "Buy Stocks",
         "Sell Stocks",
@@ -170,9 +213,14 @@ const AIChatbot = () => {
       ],
       path: (params) => {
         setSelectedOption(params.userInput);
+        console.log("Selected Option: ", selectedOption);
 
         switch (params.userInput) {
+          case "Show Stock Metrics":
+            setSelectedOption("");
+            return "pick_own_stocks_2";
           case "Analyze Stocks":
+            return "pick_own_stocks";
           case "Sell Stocks":
             return "pick_own_stocks";
           case "Buy Stocks":
@@ -213,10 +261,48 @@ const AIChatbot = () => {
           </div>
         );
       },
-      path: async () => {
+      path: () => {
+        console.log("SELECTED: " + selectedOption);
         if (selectedStock !== "") {
-          // console.log("Picking stock: ", selectedStock);
-          return "pick_date_range";
+          if (selectedOption === "Show Stock Metrics") {
+            return "process_options";
+          } else {
+            return "pick_date_range";
+          }
+        }
+      },
+    },
+    pick_own_stocks_2: {
+      message: "Okay. What stock do you want to use?             ",
+      // get selected stocks from portfolio
+      render: async (params) => {
+        let stocks = await API.fetchStocks(userID);
+        setStockElemIndex(stockElemIndex + 1);
+        return (
+          <div
+            id={`confirmStockWrapper-${stockElemIndex}`}
+            className="flex flex-row p-3 items-center"
+          >
+            <DropdownList
+              id={`stock-dropdown-${stockElemIndex}`}
+              items={stocks.map((stock) => {
+                return stock.symbol;
+              })}
+            />
+            <button
+              id={`confirm-stock-btn-${stockElemIndex}`}
+              className="ml-3 mr-2 bg-chatbotDarkBlue rounded-2xl pt-2 pb-2 pl-4 pr-4 text-white"
+              onClick={confirmStockPick2}
+            >
+              Confirm
+            </button>
+          </div>
+        );
+      },
+      path: () => {
+        console.log("SELECTED: " + selectedOption);
+        if (selectedStock !== "") {
+          return "process_options";
         }
       },
     },
@@ -224,7 +310,6 @@ const AIChatbot = () => {
       message: "Okay. What stock do you want to use?             ",
       // get selected stocks from portfolio
       render: async (params) => {
-        // TODO add external stock fetching
         let stocks = await API.getAllStocks();
         setStockElemIndex(stockElemIndex + 1);
         return (
@@ -285,11 +370,70 @@ const AIChatbot = () => {
         }
       },
     },
+    process_metrics: {
+      message: `Which metric would you like to see for ${selectedStock}?`,
+      transition: { duration: 1000 },
+      options: ["MACD", "RSI", "Volatility"],
+      path: (params) => {
+        
+        setSelectedOption(params.userInput);
+        switch (params.userInput) {
+          case "MACD":
+            setSelectedOption("MACD");
+            return "process_options";
+          case "RSI":
+            setSelectedOption("RSI");
+            return "process_options";
+          case "Volatility":
+            setSelectedOption("Volatility");
+            return "process_options";
+          default:
+            break;
+        }
+      },
+    },
     process_options: {
       message: `Sounds good! Let me process your request...`,
       transition: { duration: 1000 },
       path: async (params) => {
         switch (selectedOption) {
+          // MACD
+          case "MACD":
+            await API.getStockMetrics(selectedStock)
+              .then((response) => {
+                console.log(response);
+                prepCustomMessage(`${response.macd.advice}`, "end");
+              })
+              .catch(console.error);
+            return "custom_message";
+
+          // RSI
+          case "RSI":
+            await API.getStockMetrics(selectedStock)
+              .then((response) => {
+                console.log(response);
+                prepCustomMessage(`RSI is ${Math.round(
+                  (Math.round(response.rsi.rsi_value * 100) / 100))}. Since ${response.rsi.advice}`, "end");
+              })
+              .catch(console.error);
+            return "custom_message";
+
+          // Volatility
+          case "Volatility":
+            await API.getStockMetrics(selectedStock)
+              .then((response) => {
+                console.log(response);
+                response.volatility.advice = parseVolatility(
+                  response.volatility
+                );
+                prepCustomMessage(
+                  `The volatility of ${selectedStock} is ${response.volatility.advice}`,
+                  "end"
+                );
+              })
+              .catch(console.error);
+            return "custom_message";
+
           // ANALYZE STOCKS
           case "Analyze Stocks":
             await API.getStockPredictions(selectedDateRange, selectedStock)
@@ -297,14 +441,20 @@ const AIChatbot = () => {
                 console.log(response);
                 if (response["increase"] === true) {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${response["increase_accuracy"]}%`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${Math.round(
+                      (Math.round(response.increase_accuracy * 100) / 100) * 100
+                    )}%. We expect the stock to be at its highest value around ${
+                      response["peak_high"]
+                    } and at its lowest around ${response["peak_min"]}`,
                     "end"
                   );
                 } else {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${
-                      response["increase_accuracy"].toFixed(2) * 100
-                    }%`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${Math.round(
+                      (Math.round(response.increase_accuracy * 100) / 100) * 100
+                    )}%. We expect the stock to be at its highest value around ${
+                      response["peak_high"]
+                    } and at its lowest around ${response["peak_min"]}`,
                     "end"
                   );
                 }
@@ -319,16 +469,20 @@ const AIChatbot = () => {
                 console.log(response);
                 if (response["increase"] === true) {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${
-                      response["increase_accuracy"].toFixed(2) * 100
-                    }%`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${Math.round(
+                      (Math.round(response.increase_accuracy * 100) / 100) * 100
+                    )}%. We expect the stock to be at its highest value around ${
+                      response["peak_high"]
+                    } and at its lowest around ${response["peak_min"]}`,
                     "buy_increase"
                   );
                 } else {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${
-                      response["increase_accuracy"].toFixed(2) * 100
-                    }%`,
+                    `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${Math.round(
+                      (Math.round(response.increase_accuracy * 100) / 100) * 100
+                    )}%. We expect the stock to be at its highest value around ${
+                      response["peak_high"]
+                    } and at its lowest around ${response["peak_min"]}`,
                     "sell_decrease"
                   );
                 }
@@ -343,16 +497,21 @@ const AIChatbot = () => {
                 console.log(response);
                 if (response["increase"] === true) {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${
-                      response["increase_accuracy"].toFixed(2) * 100
-                    }%`,
+                    `We expect ${selectedStock} stock to increase by the next ${selectedDateRange} days with a model of validation accuracy of ${Math.round(
+                      (Math.round(response.increase_accuracy * 100) / 100) * 100
+                    )}%. We expect the stock to be at its highest value around ${
+                      response["peak_high"]
+                    } and at its lowest around ${response["peak_min"]}`,
                     "buy_increase"
                   );
                 } else {
                   prepCustomMessage(
-                    `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of ${
-                      response["increase_accuracy"].toFixed(2) * 100
-                    }%`,
+                    `We expect ${selectedStock} stock to decrease by the next ${selectedDateRange} days with a model of validation accuracy of 
+                    ${Math.round(
+                      (Math.round(response.increase_accuracy * 100) / 100) * 100
+                    )}%. We expect the stock to be at its highest value around ${
+                      response["peak_high"]
+                    } and at its lowest around ${response["peak_min"]}`,
                     "sell_decrease"
                   );
                 }
@@ -368,10 +527,15 @@ const AIChatbot = () => {
               selectedDateRange,
               stocks
             );
+            let response2 = await API.getPortfolioVolatility(userID);
             setAllStockPred(Object.values(response));
             const increaseValues = Object.values(response).map(
               (data) => data.increase
             );
+
+            let volatilityAdvice = response2.advice;
+            volatilityAdvice = parseVolatility(volatilityAdvice);
+            console.log(volatilityAdvice);
 
             if (increaseValues.some((val) => val === undefined)) {
               prepCustomMessage(
@@ -380,17 +544,25 @@ const AIChatbot = () => {
               );
             } else if (increaseValues.every((val) => val === true)) {
               prepCustomMessage(
-                `Based on our models we expect your portfolio to increase by the next ${selectedDateRange} days`,
+                `Based on our models we expect your portfolio to increase by about ${Math.abs(
+                  response.low_percent
+                )}-${Math.abs(
+                  response.high_percent
+                )}% in the next ${selectedDateRange} days with a ${volatilityAdvice}`,
                 "portfolio_options"
               );
             } else if (increaseValues.every((val) => val === false)) {
               prepCustomMessage(
-                `Based on our models we expect your portfolio to decrease by the next ${selectedDateRange} days`,
+                `Based on our models we expect your portfolio to decrease by about ${Math.abs(
+                  response.low_percent
+                )}-${Math.abs(
+                  response.high_percent
+                )}% in the next ${selectedDateRange} days with a ${volatilityAdvice}`,
                 "portfolio_options"
               );
             } else {
               prepCustomMessage(
-                `Based on our models your portfolio contains stocks with both increasing and decreasing projections within ${selectedDateRange} days`,
+                `Based on our models your portfolio contains stocks with both increasing and decreasing projections within ${selectedDateRange} days. It has a volatility with ${volatilityAdvice}`,
                 "portfolio_options"
               );
             }
@@ -423,7 +595,7 @@ const AIChatbot = () => {
     buy_increase: {
       message:
         "Since the stock is likely to increase, I can calculate more information for you:",
-      options: ["Stock Indicator", "Projected Graph", "No, I'm good"],
+      options: ["Stock Indicator", "No, I'm good"],
       path: (params) => {
         if (params.userInput === "Stock Indicator") {
           setSelectedOption("Stock Indicator");
@@ -439,7 +611,7 @@ const AIChatbot = () => {
     sell_decrease: {
       message:
         "Since the stock is likely to decrease we recommend you sell, I can calculate more information for you:",
-      options: ["Stock Indicator", "Projected Graph", "No, I'm good"],
+      options: ["Stock Indicator", "No, I'm good"],
       path: (params) => {
         if (params.userInput === "Stock Indicator") {
           setSelectedOption("Stock Indicator");
@@ -481,8 +653,18 @@ const AIChatbot = () => {
               {allStockPred.map((stock, index) => (
                 <tr key={index}>
                   <td>{stock.stock_symbol}</td>
-                  <td>{stock.increase ? "Increase" : "Decrease"}</td>
-                  <td>{`${Math.round((Math.round(stock.increase_accuracy*100)/100) * 100)}%`}</td>
+                  <td>
+                    {stock.increase
+                      ? `${Math.abs(stock.low_percent)}-${Math.abs(
+                          stock.high_percent
+                        )}% Increase`
+                      : `${Math.abs(stock.high_percent)}-${Math.abs(
+                          stock.low_percent
+                        )}% Decrease`}
+                  </td>
+                  <td>{`${Math.round(
+                    (Math.round(stock.increase_accuracy * 100) / 100) * 100
+                  )}%`}</td>
                 </tr>
               ))}
             </tbody>

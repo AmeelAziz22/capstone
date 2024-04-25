@@ -1,4 +1,4 @@
-const CryptoJS = require('crypto-js');
+const CryptoJS = require("crypto-js");
 
 function hashPassword(password) {
   return CryptoJS.SHA256(password).toString(CryptoJS.enc.Hex);
@@ -24,7 +24,7 @@ class API {
 
   static async register(first_name, last_name, username, password) {
     const url = `http://127.0.0.1:8000/register/`;
-    const hashedPassword = hashPassword(password)
+    const hashedPassword = hashPassword(password);
 
     return this.fetchData(url, "POST", {
       first_name: first_name,
@@ -35,7 +35,7 @@ class API {
   }
 
   static async token(username, password) {
-    const hashedPassword = hashPassword(password)
+    const hashedPassword = hashPassword(password);
     const url = `http://127.0.0.1:8000/token/`;
     return this.fetchData(url, "POST", {
       username: username,
@@ -85,13 +85,13 @@ class API {
   }
 
   static async getMultipleStockPredictions(days, symbols) {
-    let predictions = {}
-    for (const symbol of symbols){
+    let predictions = {};
+    for (const symbol of symbols) {
       const url = `http://127.0.0.1:8000/api/model/${symbol}/prediction/${days}/`;
       let response = await this.fetchData(url, "GET");
-      predictions[symbol] = response
+      predictions[symbol] = response;
     }
-    return predictions
+    return predictions;
   }
 
   static async getStockIndicator(days, symbol) {
@@ -103,7 +103,7 @@ class API {
     // cant include body and header in get request to url due to cors, so i am doing it manually here
     try {
       const url =
-      "https://finnhub.io/api/v1/stock/symbol?token=cncobthr01qkavtmr65gcncobthr01qkavtmr660&exchange=US";
+        "https://finnhub.io/api/v1/stock/symbol?token=cncobthr01qkavtmr65gcncobthr01qkavtmr660&exchange=US";
       const response = await fetch(url);
       const data = await response.json();
       return data;
@@ -111,6 +111,24 @@ class API {
       console.error("Error fetching data:", error);
       throw error;
     }
+  }
+
+  static async getStockMetrics(symbol) {
+    const url = `http://127.0.0.1:8000/api/metrics/${symbol}/rsi/`;
+    let rsi = await this.fetchData(url, "GET");
+
+    const url2 = `http://127.0.0.1:8000/api/metrics/${symbol}/macd/`;
+    let macd = await this.fetchData(url2, "GET");
+
+    const url3 = `http://127.0.0.1:8000/api/metrics/${symbol}/volatility/`;
+    let volatility = await this.fetchData(url3, "GET");
+
+    return { rsi: rsi, macd: macd, volatility: volatility };
+  }
+
+  static async getPortfolioVolatility(userID) {
+    const url = `http://127.0.0.1:8000/api/portfolio/metrics/volatility/${userID}/`;
+    return this.fetchData(url, "GET");
   }
 }
 

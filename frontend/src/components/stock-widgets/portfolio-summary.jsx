@@ -24,6 +24,14 @@ function PortfolioSummary({ userID, summaryData }) {
       legend: {
         display: false,
       },
+      title: {
+        display: true,
+        text: "Portfolio Value Over Time",
+        color: "#d3d3d3",
+        font: {
+          size: 20,
+        },
+      },
     },
     maintainAspectRatio: false,
     responsive: true,
